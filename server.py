@@ -155,8 +155,7 @@ class Handler(BaseHTTPRequestHandler):
             self.json(200, CACHE.get(source, lat, lon))
             return
         files = {"/": ("index.html", "text/html; charset=utf-8"),
-                 "/review": ("review.html", "text/html; charset=utf-8"),
-                 "/share.js": ("share.js", "text/javascript; charset=utf-8"),
+                 "/about": ("overview.html", "text/html; charset=utf-8"),
                  "/app.js": ("app.js", "text/javascript; charset=utf-8"),
                  "/rain_renderer.js": ("rain_renderer.js", "text/javascript; charset=utf-8"),
                  "/style.css": ("style.css", "text/css; charset=utf-8"),

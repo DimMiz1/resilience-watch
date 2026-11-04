@@ -11,7 +11,7 @@ APP_FILES = (
     "package_release.py",
 )
 STATIC_FILES = (
-    "index.html", "review.html", "share.js", "app.js", "rain_renderer.js",
+    "index.html", "overview.html", "app.js", "rain_renderer.js",
     "style.css", "manifest.webmanifest", "offline.html", "sw.js",
     "app-icon.svg", "app-icon-192.png", "app-icon-512.png",
 )
@@ -20,7 +20,7 @@ TEST_FILES = (
     "test_feeds.py", "test_map_data.py", "test_ml.py", "test_release.py",
     "test_product_ui.js", "test_location.js", "test_requests.js",
     "test_water.js", "test_mobile.js", "test_rain_view.js",
-    "test_rain_renderer.js", "test_phone_app.js", "test_sharing.js",
+    "test_rain_renderer.js", "test_phone_app.js",
 )
 
 

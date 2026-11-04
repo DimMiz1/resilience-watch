@@ -251,23 +251,26 @@ class HttpTests(unittest.TestCase):
                 self.assertIn(mime, response.headers["Content-Type"])
                 self.assertTrue(response.read())
 
-    def test_mentor_introduction_and_sharing_script(self):
-        with urllib.request.urlopen(self.base + "/review") as response:
+    def test_project_overview_is_professional_and_has_no_sharing_workflow(self):
+        with urllib.request.urlopen(self.base + "/about") as response:
             text = response.read().decode()
-            self.assertIn("Mentor preview", text)
+            self.assertIn("Project overview", text)
             self.assertIn('href="/"', text)
+            self.assertNotIn("mentor", text.lower())
+            self.assertNotIn("mailto:", text.lower())
+            self.assertNotIn("sharing", text.lower())
             self.assertNotIn('src="/app.js"', text)
             self.assertNotIn("leaflet", text)
-        with urllib.request.urlopen(self.base + "/share.js") as response:
-            self.assertIn("text/javascript", response.headers["Content-Type"])
-            self.assertIn(b"mentorEmailURL", response.read())
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            urllib.request.urlopen(self.base + "/share.js")
+        self.assertEqual(error.exception.code, 404)
 
     def test_access_logs_do_not_record_gps_queries(self):
         with mock.patch.object(Handler, "log_message") as log:
-            with urllib.request.urlopen(self.base + "/review?lat=42.123456&secret=private"):
+            with urllib.request.urlopen(self.base + "/about?lat=42.123456&secret=private"):
                 pass
         rendered = " ".join(str(arg) for call in log.call_args_list for arg in call.args)
-        self.assertIn("/review", rendered)
+        self.assertIn("/about", rendered)
         self.assertNotIn("42.123456", rendered)
         self.assertNotIn("private", rendered)
 

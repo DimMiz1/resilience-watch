@@ -1,4 +1,4 @@
-# Hosted mentor demo only. Review account usage limits before deployment.
+# Hosted research prototype. Review account usage limits before deployment.
 services:
   - type: web
     name: resilience-watch-mentor

@@ -14,8 +14,7 @@
 !local_ml.py
 !static/
 !static/index.html
-!static/review.html
-!static/share.js
+!static/overview.html
 !static/app.js
 !static/rain_renderer.js
 !static/style.css

@@ -16,28 +16,16 @@ It is a starting point for the team, not a finished product and not an
 official warning service. **Follow the emergency services for your actual
 country and region. BG-ALERT is relevant only in Bulgaria.**
 
-## Share with a mentor: one browser link
+## Project overview and live application
 
-The mentor-facing introduction is at **`/review`**. It explains the concept,
-how to open the map, and the current limitations before asking for location.
-Viewing this introduction does not request GPS or start provider lookups.
-The live app still offers automatic location, with a manual city choice if
-permission is declined.
-
-After public HTTPS deployment, the introduction's **Prepare email** opens
-an editable email draft and **Copy link** copies the same canonical `/review`
-URL. Nothing is sent automatically, and the link contains no coordinates,
-selected area or calculated destination. Localhost, numeric IPs, local-domain
-addresses and non-HTTPS previews cannot generate a mentor email link. Your
-mentor needs only a current browser; installing on a home screen is optional.
-Some embedded mail browsers restrict GPS: open the link in the device's main
-browser if that happens.
+**Live application: <https://resilience-watch-mentor.onrender.com/>**
+(project overview: <https://resilience-watch-mentor.onrender.com/about>;
+source: <https://github.com/DimMiz1/resilience-watch>.)
+The application runs in a current browser on phones, tablets and computers.
+Location permission is requested by the map; users can decline and choose a
+city.
 
 ### Live Frankfurt deployment
-
-**Live link: <https://resilience-watch-mentor.onrender.com/review>**
-(app: <https://resilience-watch-mentor.onrender.com/>, source:
-<https://github.com/DimMiz1/resilience-watch>, deployed from `main`.)
 
 `render.yaml` configures one Docker web service in **Frankfurt, Germany**,
 on Render's `free` compute plan, with `/api/health` as its health check. Render
@@ -50,8 +38,8 @@ To redeploy, push the contents of the generated deployment ZIP to the `main`
 branch of that repository; Render rebuilds automatically. To recreate it
 elsewhere, sign in to [Render](https://dashboard.render.com/), choose a new
 **Blueprint** from the repository's root `render.yaml`, and check the
-**Frankfurt** region and **Free** plan before approving. Then open `/review` from
-another device/network and use **Prepare email** to send the link yourself.
+**Frankfurt** region and **Free** plan before approving. Then open the
+application from another device/network to confirm the deployment.
 
 Optional CDSE credentials belong in the host's secret/environment settings,
 never in the ZIP, repository or browser. Provider failures are still possible:
@@ -70,14 +58,14 @@ free prototype for operational emergency response.
 Build an app-only source package with standard Python:
 
 ```powershell
-py -3 resilience\package_release.py --output C:\path\resilience-watch-mentor.zip
+py -3 resilience\package_release.py --output C:\path\resilience-watch-deployment.zip
 ```
 
 The ZIP uses explicit runtime, static and regression-test allowlists. It omits
 Colibri files, `.cache`, `.env`, model data, local generation logs and unrelated
 workspace content. The Docker build context also uses an allowlist. It is a
-**source/deployment package**, not a phone executable: email the deployed URL
-to the mentor, not a ZIP that requires them to run Python.
+**source/deployment package**, not a phone executable. The deployed URL opens
+the application directly.
 Commands elsewhere in this README use the original workspace layout. In the
 extracted app-only package, omit the `resilience\` prefix; Colibri integration
 tests under `c\tests` are not part of that package.
@@ -573,7 +561,7 @@ py -3 -m unittest discover -s c\tests -p "test_local_*.py"
 node --check resilience\static\app.js
 foreach ($test in @("test_product_ui.js", "test_location.js", "test_requests.js",
   "test_water.js", "test_mobile.js", "test_rain_view.js", "test_rain_renderer.js",
-  "test_phone_app.js", "test_sharing.js")) {
+  "test_phone_app.js")) {
   node "resilience\$test"
   if ($LASTEXITCODE -ne 0) { throw "Failed: $test" }
 }
