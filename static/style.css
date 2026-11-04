@@ -1,0 +1,277 @@
+/* Utility-first weather workspace: system fonts, restrained surfaces, functional hazard colours. */
+:root {
+  color-scheme: light;
+  --bg: #f2f5f8;
+  --panel: #ffffff;
+  --line: #cbd5df;
+  --text: #18324b;
+  --muted: #4f6275;
+  --teal: #0d4d7c;
+  --orange: #805008;
+  --blue: #2177cf;
+  --purple: #61509c;
+  --control-line: #738598;
+  --focus: #9a5100;
+  --danger: #a32822;
+  --soft: #eaf0f6;
+  --radius: 8px;
+}
+* {box-sizing: border-box}
+[hidden] {display: none !important}
+html {scroll-behavior: smooth; scroll-padding-block: 20px 100px}
+body {margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 "Segoe UI", system-ui, sans-serif}
+a {color: var(--teal); text-underline-offset: 3px}
+button, input, select {font: inherit}
+button, input, select, a, summary {outline-offset: 3px}
+:is(button, input, select, a, summary):focus-visible {outline: 3px solid var(--focus)}
+button {min-height: 44px; max-width: 100%; padding: 9px 14px; border: 1px solid var(--control-line); border-radius: 5px; background: var(--panel); color: var(--text); cursor: pointer; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere}
+button:disabled {opacity: .55; cursor: not-allowed}
+button[aria-busy=true] {cursor: progress}
+button:active:not(:disabled) {background: var(--soft)}
+input:not([type=checkbox]):not([type=range]), select {min-height: 44px; max-width: 100%; padding: 9px 10px; border: 1px solid var(--control-line); border-radius: 5px; background: var(--panel); color: var(--text); font-size: 16px}
+input[type=checkbox] {width: 22px; height: 22px; accent-color: var(--teal)}
+input[type=range] {width: 100%; min-height: 44px; margin: 0; accent-color: var(--teal); cursor: pointer}
+.primary {background: var(--teal); color: var(--panel); border-color: var(--teal)}
+.button-link {display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 9px 14px; border: 1px solid var(--control-line); border-radius: 5px; text-decoration: none; font-weight: 600; overflow-wrap: anywhere}
+.review-main {max-width: 960px; padding-block-end: 32px}
+.review-hero {padding-block: 16px 24px}
+.review-hero h1 {max-width: 22ch; font-size: clamp(28px, 5vw, 46px)}
+.review-hero > p {max-width: 65ch}
+.review-actions {display: flex; flex-wrap: wrap; gap: 12px; margin-block: 18px}
+.review-cards {display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; margin-block: 20px}
+.review-cards article, .share-panel {min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel)}
+.review-cards h2 {font-size: 18px}
+.review-cards p, .share-panel p {overflow-wrap: anywhere}
+.share-panel {margin-block: 20px}
+.share-panel label {display: block; margin-block: 12px 6px}
+#share-url {width: 100%}
+.review-note {padding: 14px 16px; background: #fbf3df; border-inline-start: 3px solid #99722d; color: #684811}
+a[aria-disabled=true] {opacity: .55}
+.skip-link {position: fixed; inset-block-start: 8px; inset-inline-start: 8px; z-index: 2000; padding: 12px 16px; background: var(--panel); border: 2px solid var(--teal); transform: translateY(-160%)}
+.skip-link:focus {transform: none}
+.institution-banner {display: flex; align-items: center; gap: 16px; padding: 10px max(16px, calc((100% - 1120px) / 2)); background: #103c60; color: var(--panel); font-size: 14px}
+.institution-banner strong {font-size: 17px; font-weight: 650}
+.institution-banner b {margin-inline-start: auto; font-size: 12px; font-weight: 400}
+.sidebar {display: none}
+main {max-width: 1160px; margin-inline: auto; padding: 24px 20px calc(112px + env(safe-area-inset-bottom))}
+main:focus {outline: none}
+header {display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-block-end: 16px}
+h1 {margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.2; letter-spacing: -.7px}
+h2 {margin: 0; font-size: 20px; line-height: 1.35}
+h3 {margin: 0 0 10px; font-size: 16px; line-height: 1.4}
+p {margin-block: 10px}
+.subtitle {margin: 5px 0 0; color: var(--muted); font-size: 14px}
+.header-actions {display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-width: 0; max-width: 100%}
+#refresh {white-space: nowrap; min-width: 100px}
+#refresh-clock {font-size: 12px; max-width: 26ch}
+.muted, .meta, .small, .footnote {color: var(--muted)}
+.small, .meta, .footnote {font-size: 14px}
+.old {color: var(--orange)}
+.warning {padding: 10px 14px; border-inline-start: 3px solid #99722d; background: #fbf3df; color: #684811; font-size: 13px}
+.warning strong {font-weight: 650}
+.warning span {display: block; margin-block-start: 2px}
+.location-disclosure {margin: 8px 0 14px; color: var(--muted); font-size: 12px}
+.error {padding: 12px 14px; margin-block: 12px; background: #fff0eb; color: #862d1b; border: 1px solid #b77362; border-radius: 5px}
+.destination-panel {padding: 16px; margin-block: 16px; background: var(--panel); border: 1px solid var(--line); border-inline-start: 4px solid var(--teal); border-radius: var(--radius)}
+.destination-panel p {overflow-wrap: anywhere}
+.destination-card {padding: 12px; margin-block: 8px; background: var(--soft); border-radius: 5px; overflow-wrap: anywhere}
+.destination-card h3 {margin-block-end: 4px}
+.destination-card button {width: 100%; text-align: start}
+.destination-card a {display: block; min-height: 44px; padding-block: 10px}
+#destination-evidence {font-size: 14px; color: var(--muted); overflow-wrap: anywhere}
+.workspace {display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px}
+.workspace > *, .risk-grid > *, .source-grid > *, .observation-grid > * {min-width: 0}
+.map-panel {overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel)}
+.panel-heading {display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px}
+.panel-heading h2 {position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%)}
+.panel-heading > div {min-width: 0}
+#area-label {display: block; font-size: 14px; overflow-wrap: anywhere}
+#fit-area {flex-shrink: 0; font-size: 14px}
+.map-modes {display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; margin: 0 12px 10px; background: var(--soft); border-radius: 6px}
+.map-modes button {border-color: transparent; background: transparent; font-size: 15px; padding: 8px 6px}
+.map-modes button[aria-pressed=true] {background: var(--teal); color: var(--panel)}
+.location-prompt {display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-block-start: 1px solid var(--line); background: #f4f7fa}
+.location-prompt p {flex: 1; margin: 0; color: var(--muted); font-size: 14px}
+.location-prompt button {flex-shrink: 0; font-size: 14px}
+#map {height: clamp(360px, 55dvh, 640px); position: relative; z-index: 0; background: #e0e8ef; color: var(--text)}
+.map-placeholder {padding: 24px; max-width: 60ch}
+.mode-description {padding: 10px 16px; margin: 0; font-size: 14px; color: var(--muted); border-block-end: 1px solid var(--line)}
+.rain-playback {display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 14px 16px; background: #f4f7fa}
+.rain-playback > div:first-child {min-width: 0; align-self: center}
+#rain-time-label {display: block; font-size: 14px; overflow-wrap: anywhere}
+.forecast-badge {font-size: 12px; color: var(--muted)}
+#rain-play {grid-column: 2; grid-row: 1; min-width: 150px; background: var(--teal); color: var(--panel); border-color: var(--teal); font-size: 14px}
+#rain-animation-status {grid-column: 1/-1; margin: 5px 0; font-size: 12px; color: var(--muted); line-height: 1.45}
+.rain-playback label {font-size: 13px; color: var(--muted); grid-column: 1/-1}
+#rain-hour {grid-column: 1/-1}
+.time-endpoints {grid-column: 1/-1; display: flex; justify-content: space-between; color: var(--muted); font-size: 12px}
+.map-panel:is([data-mode=fire], [data-mode=places]) :is(.rain-playback, .map-legend, .rain-explainer, .map-caption) {display: none}
+details {min-width: 0}
+details > summary {cursor: pointer; min-height: 44px; padding: 10px 4px; font-size: 15px; font-weight: 600; color: var(--text)}
+details[open] > summary {margin-block-end: 12px}
+.layer-settings {padding-inline: 16px; border-block-start: 1px solid var(--line)}
+.layer-settings > summary {font-size: 14px}
+.map-controls {display: flex; flex-wrap: wrap; gap: 4px 16px}
+.map-controls label {display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; cursor: pointer}
+.map-toolbar {display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-block: 12px; font-size: 14px}
+#map-status {flex-basis: 100%; color: var(--muted); font-size: 13px}
+.map-caption {font-size: 13px; color: var(--muted)}
+.map-legend {display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 12px 16px; border-block-start: 1px solid var(--line); font-size: 12px; color: var(--muted)}
+.map-legend > span {display: flex; align-items: center; gap: 6px}
+.intensity-key {width: 100%; max-width: 620px}
+/* This gradient encodes the requested rainfall scale, not decorative branding. */
+.rain-spectrum {height: 10px; border-radius: 3px; background: linear-gradient(90deg,#d8f3ff,#a5dcfa,#54b2f4,#337cf2,#6654d9,#9635c6,#4c146d)}
+#rain-legend {display: block; margin-block-start: 4px; font-size: 13px}
+.spectrum-labels {display: flex; justify-content: space-between; gap: 8px; font-size: 12px}
+.indicator, .legend-collector {display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0}
+.blue {background: var(--blue)}
+.orange {background: #c05a20}
+.purple {background: var(--purple)}
+.teal, .legend-collector {background: #21876f}
+.rain-explainer {display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 12px 16px; background: #edf4fa; font-size: 13px}
+.quick-status {padding: 16px 0; border-block-end: 1px solid var(--line)}
+.quick-status > strong {font-size: 20px}
+.quick-status p {margin: 6px 0; font-size: 15px}
+.quick-caution {color: var(--orange); font-weight: 600}
+#quick-fire {padding-inline-start: 10px; border-inline-start: 4px solid var(--line)}
+#quick-fire[data-level="very-low"], #quick-fire[data-level="low"] {border-color: var(--blue)}
+#quick-fire[data-level="moderate"] {border-color: var(--orange)}
+#quick-fire[data-level="high"], #quick-fire[data-level="active"] {border-color: var(--danger); color: var(--danger); font-weight: 700}
+.official-sources {margin-block: 8px; padding: 10px 12px; background: var(--soft); border-radius: 5px}
+.official-sources a {display: block; min-height: 44px; padding-block: 10px; font-weight: 600}
+.area-settings, .research-details, .context-panel {padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius)}
+.area-settings > button {margin-block: 4px 12px}
+.location-bar {display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-block: 12px}
+.location-bar label {display: block; font-size: 14px; color: var(--muted); margin-block-end: 5px; letter-spacing: 0; overflow-wrap: anywhere}
+.location-bar > div {flex: 1; min-width: 100px}
+.location-bar > div:first-child {flex: 2; min-width: 200px}
+.location-bar input, .location-bar select {width: 100%}
+.location-note {width: 100%; color: var(--muted); font-size: 13px}
+.location-status {font-size: 14px; color: var(--muted); overflow-wrap: anywhere}
+.nearby-panel {padding: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius)}
+.nearby-panel > p {font-size: 14px; color: var(--orange)}
+.place-filters {display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-block: 12px}
+.place-filters button {font-size: 14px}
+.place-filters button[aria-pressed=true] {background: var(--teal); color: var(--panel)}
+.authority-priority {display: block; min-height: 44px; padding-block: 10px; font-weight: 600}
+#nearby-places, #collector-list {display: grid; gap: 8px}
+#nearby-places button, #collector-list button {text-align: start; font-size: 14px; overflow-wrap: anywhere}
+.facility-marker {width: 30px; height: 30px; border: 2px solid #8a641c; border-radius: 5px; background: #fff4d8; color: #654607; text-align: center; font-size: 16px; font-weight: 700; line-height: 26px}
+.facility-medical {background: #edf5ff; color: var(--teal); border-color: var(--teal)}
+.facility-response {background: #fff0e6; color: #92411a; border-color: #92411a}
+.map-inspector h2 {margin-block-end: 12px}
+.map-inspector > p, #map-detail {font-size: 14px}
+.back-to-map {display: inline-block; min-height: 44px; padding-block: 10px}
+.depth-panel {margin-block: 16px; padding: 14px; background: #edf4fa; border: 1px solid #aec3d6; border-radius: 5px}
+.unknown-depth {display: block; font-size: 14px; color: var(--orange)}
+.depth-panel label {display: block; margin: 12px 0 5px; font-size: 14px}
+#scenario-area {width: 100%}
+.scenario-label {font-size: 13px; font-weight: 600; color: var(--orange)}
+.water-vessel {position: relative; height: 130px; overflow: hidden; margin-block: 12px; border: 2px solid #718fae; border-block-start: 1px dashed #718fae; background: repeating-linear-gradient(to top,#fff 0,#fff 31px,#dce7f2 32px)}
+.water-fill {position: absolute; inset: auto 0 0; background: #64b2e8; border-block-start: 3px solid #176aaf}
+.water-value {position: absolute; inset: 0; display: grid; place-items: center; font-size: 26px; color: #123963; text-shadow: 0 1px var(--panel)}
+.scenario-controls, .weather-box {margin-block: 16px; padding-block-start: 16px; border-block-start: 1px solid var(--line)}
+.scenario-controls label {font-size: 14px}
+.metrics {display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-block: 20px}
+.metric {padding: 12px; border-inline-start: 2px solid var(--line)}
+.metric-label {display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); letter-spacing: 0}
+.metric strong {display: block; font-size: 28px; margin-block: 4px}
+.metric > span:last-child {font-size: 13px; color: var(--muted)}
+.data-section {padding-block-start: 28px}
+.section-title {display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-block-end: 16px}
+.section-title > .muted {font-size: 13px; max-width: 45ch}
+.eyebrow {margin: 0 0 5px; font-size: 12px; color: var(--muted); letter-spacing: 0}
+.risk-grid, .source-grid {display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px}
+.risk-card, .source-card, .observation-grid > div, .evac-grid > div {padding: 16px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); font-size: 14px}
+.risk-card a, .evac-grid a {display: block; padding-block: 6px; overflow-wrap: anywhere}
+.tag, .pill {display: inline-block; padding: 3px 6px; border: 1px solid var(--line); border-radius: 3px; font-size: 11px; color: var(--muted); letter-spacing: 0; vertical-align: middle}
+.stat {display: flex; justify-content: space-between; gap: 12px; padding-block: 7px; border-block-start: 1px solid var(--line); font-size: 14px}
+.stat > * {min-width: 0; overflow-wrap: anywhere}
+.stat strong {text-align: end; font-weight: 600}
+.big {font-size: 32px; font-weight: 650}
+.level-high {color: var(--danger)}
+.level-moderate {color: var(--orange)}
+.level-low {color: #17694f}
+.observation-grid, .evac-grid {display: grid; grid-template-columns: 1fr 1fr; gap: 16px}
+.record-list {max-height: 400px; overflow: auto}
+.record {padding-block: 12px; border-block-start: 1px solid var(--line); font-size: 14px}
+.record strong {display: block; overflow-wrap: anywhere}
+.record .meta {margin-block: 5px; font-size: 13px}
+.record a {display: inline-block; padding-block: 8px}
+.source-card p {overflow-wrap: anywhere}
+.source-card .state {display: inline-block; font-weight: 600; color: #17694f; font-size: 13px}
+.source-card .state:is(.error, .unconfigured, .stale) {background: transparent; padding: 0; border: 0; color: var(--orange)}
+.evac-head {grid-column: 1/-1}
+.urgency-inside, .urgency-near {background: #fff0eb !important; border-color: #b77362 !important}
+.urgency-watch {background: #fbf3df !important; border-color: #99722d !important}
+.official-guidance {padding: 20px 0; margin-block-start: 20px; border-block-start: 1px solid var(--line)}
+.official-guidance p {font-size: 14px}
+#authority-location {font-weight: 600}
+#authority-links, #emergency-details {display: grid; gap: 8px; margin-block: 12px}
+#authority-links a, #emergency-details a {display: block; min-height: 44px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--control-line); border-radius: 5px; overflow-wrap: anywhere}
+.contact-details {margin-block-start: 16px}
+footer {display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding-block: 24px 8px; border-block-start: 1px solid var(--line); font-size: 12px; color: var(--muted)}
+.emergency-actions {position: fixed; inset: auto 0 0; z-index: 1100; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 10px max(12px, calc((100% - 1120px) / 2)) calc(10px + env(safe-area-inset-bottom)); border-block-start: 1px solid var(--control-line); background: var(--panel)}
+.emergency-actions a {display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 8px 6px; border: 1px solid var(--control-line); border-radius: 5px; color: var(--text); font-size: 14px; font-weight: 600; line-height: 1.3; text-align: center; text-decoration: none}
+.emergency-actions .call-emergency {background: var(--danger); border-color: var(--danger); color: var(--panel)}
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {background: var(--panel); color: var(--text)}
+.leaflet-popup-content {font: 14px/1.5 "Segoe UI", system-ui, sans-serif}
+.leaflet-popup-content a {color: var(--teal)}
+.leaflet-container a.leaflet-popup-close-button {color: var(--text); width: 44px; height: 44px}
+.leaflet-popup-content {margin-inline-end: 42px}
+.leaflet-control-zoom a {min-width: 44px; min-height: 44px; display: grid; place-items: center}
+.leaflet-control-attribution {font-size: 10px}
+.leaflet-image-layer {image-rendering: auto}
+.rain-label {background: var(--text); color: var(--panel); font-size: 12px; padding: 4px 6px; border: 0}
+.rain-label:before {display: none}
+@media (hover: hover) {
+  button:hover:not(:disabled) {background: var(--soft)}
+  .primary:hover:not(:disabled), #rain-play:hover:not(:disabled) {background: #103c60}
+  .map-modes button:hover:not([aria-pressed=true]) {background: #dce7f0}
+  .emergency-actions a:hover {border-color: var(--teal)}
+}
+@media (max-width: 760px) {
+  .institution-banner > span, #refresh-clock {display: none}
+  .institution-banner {flex-wrap: wrap; gap: 2px 12px; padding: 8px 16px}
+  .institution-banner b {font-size: 12px}
+  main {padding: 14px 12px calc(106px + env(safe-area-inset-bottom))}
+  .review-main {padding-block-end: 24px}
+  header {gap: 8px; margin-block-end: 10px}
+  .subtitle {display: none}
+  .warning {font-size: 12px; padding: 8px 10px}
+  .location-disclosure {margin: 6px 0 10px}
+  .panel-heading {padding: 8px 12px; gap: 8px}
+  .map-modes {margin: 0 8px 8px}
+  .map-modes button {font-size: 14px}
+  .rain-playback {padding: 12px}
+  #rain-play {min-width: 120px; max-width: 150px}
+  .map-legend > span {display: none}
+  .rain-explainer span:last-child {display: none}
+  .location-bar > div:first-child {flex-basis: 100%; min-width: 0}
+  .location-bar > div {min-width: 0}
+  .location-bar > button {width: 100%}
+  .location-prompt {flex-wrap: wrap; padding: 10px 12px}
+  .location-prompt p {flex-basis: 100%}
+  .metrics {grid-template-columns: repeat(2, minmax(0, 1fr))}
+  .risk-grid, .source-grid, .observation-grid, .evac-grid {grid-template-columns: minmax(0, 1fr)}
+  .section-title {flex-wrap: wrap}
+  .emergency-actions {gap: 6px}
+  .emergency-actions a {font-size: 13px}
+}
+@media (max-width: 380px) {
+  .institution-banner strong {font-size: 15px}
+  .institution-banner b {font-size: 11px}
+  h1 {font-size: 23px}
+  #refresh {min-width: 88px; font-size: 14px; padding-inline: 10px}
+  #rain-play {min-width: 100px; max-width: 110px; padding-inline: 8px}
+  .map-modes button {font-size: 13px; padding-inline: 2px}
+}
+@media (prefers-reduced-motion: reduce) {
+  html {scroll-behavior: auto}
+  *, *:before, *:after {transition: none !important; animation: none !important}
+}
+@media (forced-colors: active) {
+  .map-modes button[aria-pressed=true], .place-filters button[aria-pressed=true] {border: 2px solid Highlight}
+  .emergency-actions .call-emergency {border: 2px solid ButtonText}
+  .rain-spectrum {border: 1px solid CanvasText}
+}

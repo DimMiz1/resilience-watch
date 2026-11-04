@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#103c60">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/app-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/app-icon-192.png">
+  <title>Resilience Watch | CASSINI 12 team prototype</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script defer src="/rain_renderer.js"></script>
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#overview">Skip to weather and guidance</a>
+  <div class="institution-banner"><strong>Resilience Watch</strong><span>European space data for civil resilience</span><b>Independent CASSINI 12</b></div>
+  <noscript><section class="warning"><strong>JavaScript is needed for live data and location.</strong> This page cannot load weather or identify your country without it. Contact your country's emergency services; 112 works across the EU. <a href="https://europa.eu/youreurope/citizens/travel/security-and-emergencies/emergency/index_en.htm">EU emergency-number information</a>.</section></noscript>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="Resilience Watch home"><span class="brand-icon">RW</span><span>Resilience<span class="brand-light">Watch</span></span></a>
+    <div class="edition">CASSINI 12 / TEAM PROTOTYPE</div>
+    <nav aria-label="Dashboard sections">
+      <a class="selected" href="#map-workspace"><span class="nav-dot"></span> Rain &amp; terrain map</a>
+      <a href="#risk">Models &amp; evidence</a>
+      <a href="#sources">Data &amp; limitations</a>
+      <a href="#guidance">Official guidance</a>
+    </nav>
+    <div class="side-note"><span class="tiny-label">EU SPACE FOR RESILIENCE</span><p>Shared data.<br>Local understanding.</p><span class="muted">Copernicus · ECMWF · Sentinel<br>A starting point for the team, not an official EU service.</span></div>
+    <div class="prototype-tag">PROTOTYPE · NOT AN ALERT SERVICE</div>
+  </aside>
+  <main id="overview" tabindex="-1">
+    <header>
+      <div><h1>Local refuge information</h1><p class="subtitle">Your location, nearby candidates and official guidance.</p></div>
+      <div class="header-actions"><a class="button-link" href="/review">About &amp; share</a><button id="install-app" type="button" hidden>Install app</button><span id="refresh-clock" class="muted">Not refreshed yet</span><button id="refresh" type="button" disabled aria-busy="false">Refresh <span aria-hidden="true">&#8635;</span></button></div>
+    </header>
+    <section class="warning" role="note"><strong>Not alerts. Follow local emergency services.</strong> <span id="emergency-notice">Country not identified; no local number assumed.</span></section>
+    <p class="location-disclosure">Location shared with providers. <a id="location-options" href="#location-settings">Privacy &amp; area</a></p>
+    <div id="global-error" class="error" role="alert" hidden></div>
+    <section id="destination-panel" class="destination-panel" aria-labelledby="destination-heading">
+      <h2 id="destination-heading">Where could I go?</h2>
+      <p id="destination-status" role="status">Allow location to find nearby mapped assembly points and shelters automatically.</p>
+      <p id="destination-origin" class="small muted">No device location assumed.</p>
+      <div id="destination-results" aria-live="polite"></div>
+      <div id="official-sources" class="official-sources"><p>Official evacuation points are designated by national or local civil protection. Finding your country…</p></div>
+      <a class="authority-priority" href="#guidance">Confirm a destination with local authorities</a>
+      <details><summary>How candidates are checked</summary><div id="destination-evidence">Known report-centre buffers exclude conflicting destinations; remaining places are ordered by straight-line proximity. Safe routes, shelter opening and predicted street-level hazards are unknown.</div></details>
+    </section>
+    <div class="workspace" id="map-workspace">
+      <section class="map-panel" data-mode="rain" aria-label="Weather and reported-hazard map">
+        <div class="panel-heading"><div><h2>Your area</h2><span class="muted" id="area-label">Waiting for location</span></div><button id="fit-area" type="button" disabled>Centre map</button></div>
+        <div class="map-modes" role="group" aria-label="Map view">
+          <button id="mode-rain" type="button" aria-pressed="true">Rain forecast</button>
+          <button id="mode-fire" type="button" aria-pressed="false">Fire reports</button>
+          <button id="mode-places" type="button" aria-pressed="false">Nearby places</button>
+        </div>
+        <div id="location-prompt" class="location-prompt">
+          <p id="location-prompt-message" role="status">Allow your browser's location request, or choose an area. No fixed location is assumed.</p>
+          <button id="choose-area" type="button">Choose an area</button>
+        </div>
+        <div id="map" aria-label="Interactive map of forecast rain and reported hazards"><p class="map-placeholder">Loading map. If external map resources are unavailable, observations remain accessible below.</p></div>
+        <p id="mode-description" class="mode-description" role="status">Smoothed forecast rain—not radar or flood depth.</p>
+        <div class="rain-playback" aria-label="Rain forecast time">
+          <div><strong id="rain-time-label">Current modelled hour</strong><span class="forecast-badge">ECMWF forecast · not radar</span></div>
+          <button id="rain-play" type="button" aria-pressed="false" disabled>Play next 24 hours</button>
+          <p id="rain-animation-status" role="status">Spatial smoothing estimates rain between model centres. Animation blends hourly forecasts, not observed storm motion.</p>
+          <label for="rain-hour">Forecast hour</label><input id="rain-hour" type="range" min="0" max="23" step="1" value="0">
+          <div class="time-endpoints"><span>Now</span><span>+23 hours</span></div>
+        </div>
+        <details class="layer-settings"><summary>Map layers &amp; forecast time</summary><div class="map-controls">
+          <label><input type="checkbox" id="show-rain" checked> <span class="indicator blue"></span> Blue precipitation areas (model)</label>
+          <label><input type="checkbox" id="show-water"> <span class="indicator teal"></span> Runoff collectors</label>
+          <label><input type="checkbox" id="show-drainage"> Downhill connections</label>
+          <label><input type="checkbox" id="show-river"> GloFAS river cell</label>
+          <label><input type="checkbox" id="show-places"> Mapped facilities · unverified</label>
+          <label><input type="checkbox" id="show-fire"> <span class="indicator orange"></span> Fire reports / thermal detections (not ignition forecasts)</label>
+          <label><input type="checkbox" id="show-burns"> Historical mapped burns (not active fires)</label>
+          <label><input type="checkbox" id="show-flood"> <span class="indicator blue"></span> Flood report centres</label>
+          <label><input type="checkbox" id="show-scenes"> <span class="indicator purple"></span> Satellite footprints (not hazards)</label>
+          <label><input type="checkbox" id="show-fwi"> Copernicus EFFIS Fire Weather Index</label>
+        </div>
+        <div class="map-toolbar"><label for="rain-window">Precipitation window</label><select id="rain-window"><option value="hour">Current modelled hour</option><option value="all">Three-day total</option></select><span id="map-status" role="status">Waiting for location…</span></div>
+        <p class="map-caption">Rain is linearly interpolated within a 7×7 mesh of ECMWF model centres at nominal 0.25° spacing. 49 samples cover about 1.5°; edges and missing samples are not extrapolated. Animation cross-fades successive hourly forecasts, not tracked storm motion. No radar or measured flood depth. Terrain: Copernicus DEM GLO-90 sampled at 1 km.</p>
+        </details>
+        <div class="map-legend"><div class="intensity-key"><div class="rain-spectrum" aria-hidden="true"></div><span id="rain-legend">Rain intensity · mm per hour</span><div class="spectrum-labels"><span>Light</span><span>Heavy</span><span>Extreme intensity</span></div></div><span><i class="legend-collector"></i> Green circles = sampled runoff collectors, not fire</span><span>Orange = fire evidence; historical burns are separate</span><span>Amber A/S = unverified assembly / shelter; blue H = hospital</span></div>
+        <div class="rain-explainer"><strong>Forecast evolution, not live radar</strong><span>1 mm rain = 1 litre falling on 1 m².</span><span>The smoothed layer estimates between model centres. Play follows changing hourly forecasts—not a measured storm track.</span></div>
+      </section>
+      <section class="quick-status" aria-label="Local conditions" aria-live="polite">
+        <strong id="quick-heading">Finding your location…</strong>
+        <p id="quick-rain">Rain: waiting for location.</p><p id="quick-fire">Fire reports: coverage not checked.</p>
+        <p class="quick-caution">Flood depth &amp; safe routes: unknown.</p>
+      </section>
+      <details id="location-settings" class="area-settings"><summary>Location, privacy &amp; change area</summary>
+        <button id="retry-location" type="button">Find my location</button>
+        <button id="stop-location" type="button" hidden>Stop location updates</button>
+        <form id="location-form" class="location-bar">
+          <div><label for="place">Area of interest</label><select id="place"><option value="42.8742,25.3187">Gabrovo, Bulgaria</option><option value="42.6977,23.3219">Sofia, Bulgaria</option><option value="42.1354,24.7453">Plovdiv, Bulgaria</option><option value="43.2141,27.9147">Varna, Bulgaria</option><option value="45.4642,9.1900">Milan, Italy</option><option value="39.4699,-0.3763">Valencia, Spain</option><option value="50.0755,14.4378">Prague, Czechia</option><option value="custom">Custom coordinates</option></select></div>
+          <div><label for="latitude">LATITUDE</label><input id="latitude" type="number" step="any" min="-80" max="80" value="42.8742" required></div>
+          <div><label for="longitude">LONGITUDE</label><input id="longitude" type="number" step="any" min="-178" max="178" value="25.3187" required></div>
+          <button type="submit" class="primary">Watch this area <span aria-hidden="true">&#8594;</span></button>
+          <span class="location-note">Click the map to select another area.<br>Coverage and source limits are shown per layer.</span>
+        </form>
+        <p id="location-status" class="location-status" role="status">Location is requested automatically. Your browser controls permission. Alternatively choose an area manually.</p>
+        <details><summary>Install on your phone</summary><p id="install-status">Android / desktop: use your browser's Install app menu when available. iPhone: Safari, Share, Add to Home Screen. Phone access requires an HTTPS deployment; this computer's localhost address is not reachable from your phone.</p><p>Only an offline help page is cached. Hazard data, destinations and location history are not saved offline. Location updates run while this app is visible, with your permission; this is not background emergency tracking.</p></details>
+      </details>
+      <section id="nearby" class="nearby-panel" hidden>
+        <h2>Evacuation information</h2>
+        <p>Check local authorities first. A = mapped assembly point · S = mapped shelter · H = hospital · F = fire station. None is verified safe or open.</p>
+        <div class="place-filters" role="group" aria-label="Facility type">
+          <button id="places-assembly" type="button" aria-pressed="true">Assembly / shelters</button>
+          <button id="places-services" type="button" aria-pressed="false">Medical / response</button>
+        </div>
+        <a class="authority-priority" href="#guidance">Check official local instructions</a>
+        <div id="nearby-places" aria-live="polite">Waiting for selected location…</div>
+      </section>
+      <details class="context-panel map-inspector"><summary>Explore terrain &amp; water scenarios · advanced</summary>
+        <p class="eyebrow">INSPECT · QUESTION · VALIDATE</p><h2>What could collect here?</h2>
+        <a class="back-to-map" href="#map-workspace">Back to the map ↑</a>
+        <div id="map-detail" aria-live="polite"><p class="muted">Select a runoff collector or rainfall sample. Candidate terrain minima are not confirmed flooded places.</p></div>
+        <div class="depth-panel">
+          <h3>Surface-water depth · scenario only</h3><strong class="unknown-depth">Actual flood depth: unavailable</strong>
+          <p class="small">Rainfall millimetres are not flood-water depth. No validated inundation-depth layer is connected.</p>
+          <label for="scenario-area">Hypothetical collection area (m²)</label>
+          <input id="scenario-area" type="number" min="100" max="10000000" step="100" value="10000">
+          <div id="water-scenario" aria-live="polite">Select a terrain collector to explore an assumed water-level scenario.</div>
+          <p class="old small">Illustration only: assumes all scenario inflow stays in your chosen area, without drainage or infiltration. The area is not detected from satellite imagery. Do not use this as a flood prediction.</p>
+        </div>
+        <div class="scenario-controls"><label for="runoff-factor">Runoff scenario: <strong id="runoff-label">30%</strong></label><input id="runoff-factor" type="range" min="0" max="100" step="10" value="30"><p class="muted small">An illustrative team assumption, not a fitted soil coefficient. Scales scenario volume and hypothetical depth only—not flood probability or actual water depth.</p></div>
+        <h3>Candidate collection points</h3><div id="collector-list">Loading terrain…</div>
+        <div class="weather-box"><h3>Other factors at the selected area</h3><div id="map-factors">Loading rain intensity, soil moisture, wind and storm energy…</div></div>
+        <div class="weather-box"><h3>Current modelled weather</h3><div id="weather-details" class="muted">Model data not loaded.</div></div>
+      </details>
+    </div>
+    <details class="research-details"><summary>Data, models &amp; team workspace</summary>
+    <section class="metrics" aria-label="Source coverage summary">
+      <article class="metric"><span class="metric-label"><span class="indicator orange"></span>THERMAL DETECTIONS</span><strong id="fire-count">--</strong><span id="fire-note">Waiting for FIRMS</span></article>
+      <article class="metric"><span class="metric-label"><span class="indicator blue"></span>FLOOD REPORTS</span><strong id="flood-count">--</strong><span id="flood-note">Waiting for GDACS</span></article>
+      <article class="metric"><span class="metric-label"><span class="indicator purple"></span>SENTINEL ACQUISITIONS</span><strong id="scene-count">--</strong><span id="scene-note">Catalogue footprints, not hazards</span></article>
+      <article class="metric"><span class="metric-label"><span class="indicator teal"></span>MODELLED WEATHER</span><strong id="temperature">--</strong><span id="weather-note">Waiting for weather model</span></article>
+    </section>
+    <details id="evacuation" class="data-section">
+      <summary>Experimental direction scoring · not a verified route or safety recommendation</summary>
+      <div class="section-title"><div><p class="eyebrow">ADVISORY · AVOIDS KNOWN HAZARDS ONLY</p><h2>Which way is away from danger?</h2></div>
+        <div class="header-actions"><button id="use-location" type="button">Use my location</button><button id="evacuate" type="button" class="primary">Check directions <span aria-hidden="true">&#8594;</span></button></div></div>
+      <div id="evac-result" class="evac-grid" aria-live="polite"><p class="muted small">Combines fire tracks, EFFIS burnt areas, CEMS activations, GloFAS, the flood model and Copernicus DEM height. Nothing is guessed when a source is missing; missing inputs are listed.</p></div>
+    </details>
+    <section id="risk" class="data-section">
+      <div class="section-title"><div><p class="eyebrow">MACHINE LEARNING + TRANSPARENT FACTORS</p><h2>Risk outlook</h2></div><span class="muted">Trained models show test scores. Rule-based factors say so.</span></div>
+      <div class="risk-grid">
+        <article class="risk-card"><h3>Flood model <span class="tag">TRAINED</span></h3><div id="risk-flood" class="muted small">Training on 10 years of ERA5 rain and GloFAS river flow…</div></article>
+        <article class="risk-card"><h3>Where rain piles up <span class="tag">TERRAIN</span></h3><div id="risk-water" class="muted small">Loading Copernicus DEM…</div></article>
+        <article class="risk-card"><h3>Lightning &amp; fire weather <span class="tag">RULES</span></h3><div id="risk-weather" class="muted small">Loading ECMWF forecast…</div></article>
+        <article class="risk-card"><h3>Rivers &amp; Copernicus EMS <span class="tag">OFFICIAL</span></h3><div id="risk-official" class="muted small">Loading GloFAS and Rapid Mapping…</div></article>
+        <article class="risk-card"><h3>Sentinel-2 water &amp; burn indicators <span class="tag">SATELLITE</span></h3><div id="risk-sentinel" class="muted small">Checking CDSE configuration…</div></article>
+        <article class="risk-card"><h3>Local fire occurrence model <span class="tag">OPT-IN ML</span></h3><div id="risk-fire-ml" class="muted small">Requires team-reviewed fire and non-fire labels.</div></article>
+      </div>
+    </section>    <section id="observations" class="data-section">
+      <div class="section-title"><div><p class="eyebrow">TRACEABLE SIGNALS</p><h2>Observed &amp; reported</h2></div><span class="muted">Source time and retrieval time are different.</span></div>
+      <div class="observation-grid"><div><h3>Fire &amp; flood reports</h3><div id="event-list" class="record-list" aria-live="polite">Waiting for feeds.</div></div><div><h3>Copernicus acquisition catalogue</h3><p class="muted small">Latest 8 scenes over 14 days. Imagery has not been processed to identify water or fire.</p><div id="scene-list" class="record-list" aria-live="polite">Waiting for catalogue.</div></div></div>
+    </section>
+    <section id="sources" class="data-section">
+      <div class="section-title"><div><p class="eyebrow">TRANSPARENCY BY DEFAULT</p><h2>Feed health &amp; coverage gaps</h2></div><span class="pill">AUTO-REFRESH EVERY 5 MIN</span></div>
+      <div id="source-list" class="source-grid" aria-live="polite"></div>
+      <p class="footnote">Refresh frequency is not observation frequency. Delays depend on satellite revisits, clouds, processing and reporting. Old observations are labelled after 24 hours; this is a display convention, not a hazard-expiry rule. Missing feeds never become a “safe” status. No demo observations are inserted.</p>
+    </section>
+    </details>
+    <section id="guidance" class="data-section official-guidance"><h2>Emergency services for this area</h2>
+      <p id="authority-location" role="status">Country and region not identified yet.</p>
+      <div id="authority-links"></div>
+      <details class="contact-details"><summary>Other service numbers &amp; source details</summary><div id="emergency-details">No country-specific contact loaded.</div></details>
+      <p>This prototype cannot choose a safe evacuation route. Calling connects to emergency services where your phone is—not to a distant area you selected on the map.</p>
+    </section>
+    <footer><span>CASSINI 12 / INDEPENDENT TEAM PROTOTYPE · NO OFFICIAL ENDORSEMENT</span><span>Copernicus · ECMWF · OSM · Supplementary GDACS / FIRMS</span></footer>
+  </main>
+  <nav class="emergency-actions" aria-label="Emergency actions"><a id="emergency-call" class="call-emergency" href="#guidance">Emergency help</a><a id="nearby-action" href="#destination-panel">Nearby candidates</a><a href="#guidance">Local authorities</a></nav>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Hosted mentor demo only. Review account usage limits before deployment.
+services:
+  - type: web
+    name: resilience-watch-mentor
+    runtime: docker
+    region: frankfurt
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: "8080"
