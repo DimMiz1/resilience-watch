@@ -171,7 +171,7 @@ class HazardTests(unittest.TestCase):
         ]}
         with mock.patch.object(hazards, "fetch", return_value=json.dumps(response)) as fetch:
             result = hazards.places_feed(42.87, 25.32)
-        self.assertEqual(fetch.call_args.kwargs["timeout"], 20)
+        self.assertEqual(fetch.call_args.kwargs["timeout"], 12)
         self.assertIn(b"assembly_point", fetch.call_args.kwargs["data"])
         self.assertEqual({p["kind"] for p in result["places"]}, {"assembly point", "hospital", "shelter"})
         self.assertEqual(result["observation_time"], "unknown")
@@ -180,6 +180,18 @@ class HazardTests(unittest.TestCase):
             with mock.patch.object(hazards, "fetch", return_value=json.dumps(invalid)):
                 with self.assertRaises(hazards.FeedError):
                     hazards.overpass_places(42.87, 25.32)
+
+    def test_places_retry_busy_primary_server_before_mirrors(self):
+        ok = json.dumps({"elements": [{"lat": 42.8, "lon": 25.3, "tags": {"emergency": "assembly_point"}}]})
+        replies = [hazards.FeedError("Provider returned HTTP 502."), ok]
+        with mock.patch.object(hazards, "fetch", side_effect=replies) as fetch, mock.patch.object(hazards.time, "sleep") as sleep:
+            places = hazards.overpass_places(42.87, 25.32)
+        self.assertEqual(len(places), 1)
+        self.assertEqual([c.args[0] for c in fetch.call_args_list], [hazards.OVERPASS[0]] * 2)
+        sleep.assert_any_call(2)
+        with mock.patch.object(hazards, "fetch", side_effect=[hazards.FeedError("Provider connection failed or timed out."), ok]) as fetch:
+            hazards.overpass_places(42.87, 25.32)
+        self.assertEqual(fetch.call_args_list[1].args[0], hazards.OVERPASS[1])
 
     def test_places_fall_back_to_dated_last_good_copy_only_within_seven_days(self):
         mapped = [{"name": "Assembly", "kind": "assembly point", "lat": 42.8, "lon": 25.3, "distance_km": 2, "bearing": "N"}]

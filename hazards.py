@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 import json
 import math
 from pathlib import Path
+import time
 import urllib.parse
 
 from feeds import FeedError, age_minutes, coordinate, fetch, fetch_json, record_time, utc_now
@@ -272,9 +273,14 @@ def overpass_places(lat, lon, radius_m=25000):
              f'nwr["social_facility"="shelter"](around:{radius_m},{lat},{lon});'
              f");out center 80;")
     last = None
-    for url in OVERPASS:
+    # The primary server often answers "at capacity" briefly; retry it before slower mirrors.
+    attempts = [(OVERPASS[0], 0), (OVERPASS[0], 2), (OVERPASS[0], 4)] + [(url, 0) for url in OVERPASS[1:]]
+    for url, wait in attempts:
+        if wait and not (last and any(code in str(last) for code in ("HTTP 429", "HTTP 502", "HTTP 503", "HTTP 504"))):
+            continue
+        time.sleep(wait)
         try:
-            text = fetch(url, timeout=20, data=urllib.parse.urlencode({"data": query}).encode())
+            text = fetch(url, timeout=12, data=urllib.parse.urlencode({"data": query}).encode())
             data = json.loads(text)
             if not isinstance(data, dict) or not isinstance(data.get("elements"), list):
                 raise FeedError("OpenStreetMap returned no valid facility list.")

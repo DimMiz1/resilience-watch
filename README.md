@@ -33,7 +33,11 @@ mentor needs only a current browser; installing on a home screen is optional.
 Some embedded mail browsers restrict GPS: open the link in the device's main
 browser if that happens.
 
-### Prepared Frankfurt deployment (not published yet)
+### Live Frankfurt deployment
+
+**Live link: <https://resilience-watch-mentor.onrender.com/review>**
+(app: <https://resilience-watch-mentor.onrender.com/>, source:
+<https://github.com/DimMiz1/resilience-watch>, deployed from `main`.)
 
 `render.yaml` configures one Docker web service in **Frankfurt, Germany**,
 on Render's `free` compute plan, with `/api/health` as its health check. Render
@@ -42,26 +46,18 @@ EU-region hosting, **not an EU-owned or fully sovereign infrastructure claim**:
 Render is a separate cloud provider, and external map/data services remain.
 The same Dockerfile can instead run on a university-controlled or EU-owned host.
 
-One team member performs setup; the mentor does not:
+To redeploy, push the contents of the generated deployment ZIP to the `main`
+branch of that repository; Render rebuilds automatically. To recreate it
+elsewhere, sign in to [Render](https://dashboard.render.com/), choose a new
+**Blueprint** from the repository's root `render.yaml`, and check the
+**Frankfurt** region and **Free** plan before approving. Then open `/review` from
+another device/network and use **Prepare email** to send the link yourself.
 
-1. Create a **private, app-only Git repository** and upload the contents of the
-   generated deployment ZIP at its root. Do not upload the Colibri workspace,
-   models, `.env` files, private datasets or existing caches.
-2. Sign in to [Render](https://dashboard.render.com/) and connect that repository.
-   Choose a new **Blueprint**, using its root `render.yaml`. Review the service
-   name, **Frankfurt** region and **Free** plan before approving deployment.
-   The configuration name must not target an existing unrelated service.
-3. After the host reports the deployment live, open its **actual generated HTTPS
-   URL** from another device/network, then open `/review`. Check the app,
-   provider coverage and location-denial flow before sending it.
-4. Use **Prepare email** on `/review`, edit the message and recipient, then send
-   it yourself. The same link works on supported phones, tablets and computers.
-
-No repository, hosting account or cloud service is created by the package.
-No public URL exists until those setup steps are completed. Optional CDSE
-credentials belong in the host's secret/environment settings, never in the ZIP
-or browser. Provider failures are still possible after deployment; this package
-does not supply an official shelter inventory.
+Optional CDSE credentials belong in the host's secret/environment settings,
+never in the ZIP, repository or browser. Provider failures are still possible:
+the public OpenStreetMap Overpass servers are sometimes at capacity, and then
+the app shows no nearby place rather than guessing. This package does not
+supply an official shelter inventory.
 
 **Free-demo limitations:** Render sleeps after 15 idle minutes; reopening can
 take about a minute. Files and cached facility lists disappear on restart,
