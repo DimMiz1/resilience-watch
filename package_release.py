@@ -8,7 +8,7 @@ APP_FILES = (
     "server.py", "feeds.py", "hazards.py", "emergency.py", "map_data.py",
     "ml.py", "fire_ml.py", "copernicus.py", "local_geo.py", "local_helpers.py",
     "local_ml.py", "Dockerfile", ".dockerignore", "render.yaml", "README.md",
-    "package_release.py", "network.py", "incidents.py", "watcher.py", "data/emsr693_aoi.json", "build_network.py", "data/burgas_south.json",
+    "package_release.py", "network.py", "incidents.py", "watcher.py", "data/replay/emsr693_aoi.json", "data/replay/datex_20230915_roadworks_r02.xml", "data/replay/datex_20230918_roadworks_r02.xml", "DESIGN.md", "build_network.py", "data/burgas_south.json",
 )
 STATIC_FILES = (
     "index.html", "overview.html", "impact.html", "impact.js", "operations.html", "operations.js", "app.js", "rain_renderer.js",

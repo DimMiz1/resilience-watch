@@ -84,6 +84,55 @@ class WatcherTest(unittest.TestCase):
         self.assertEqual(out[0]["id"], "EMSR693")
         self.assertTrue(out[0]["crossings"])
 
+    def test_fusion_rules(self):
+        ev = lambda kind, src: {"kind": kind, "source": src}
+        self.assertEqual(watcher.fuse([ev("closure", "Road agency")])[0], "confirmed")
+        self.assertEqual(watcher.fuse([ev("inundation", "GFM"), ev("exposure", "GloFAS")])[0], "confirmed")
+        self.assertEqual(watcher.fuse([ev("inundation", "GFM")])[0], "reported")
+        self.assertEqual(watcher.fuse([ev("restriction", "Road agency")])[0], "reported")
+        self.assertEqual(watcher.fuse([ev("exposure", "GloFAS"), ev("warning", "Meteoalarm"), ev("aoi", "CEMS")])[0], "suspected")
+
+    def test_evidence_accumulates_and_auto_confirms(self):
+        flood = {**signal("X001", sid="gfm-1"), "source": "GFM", "kind": "inundation", "observed_at": NOW.isoformat()}
+        river = {**signal("X001", sid="glofas-1"), "source": "GloFAS", "kind": "exposure", "observed_at": NOW.isoformat()}
+        self.assertEqual(watcher.apply([flood], self.net, NOW), ["X001"])
+        self.assertEqual(self.statuses(), {"X001": "reported"})
+        self.assertEqual(watcher.apply([river], self.net, NOW), ["X001"])
+        item = incidents._read()[0]
+        self.assertEqual((item["status"], item["history"][-1]["by"], len(item["evidence"])), ("confirmed", "automatic rule", 2))
+        self.assertIsNotNone(incidents.situation(self.net, NOW)["impact"])
+
+    def test_datex_closure_matches_crossing_on_named_road(self):
+        xml = ('<?xml version="1.0" encoding="UTF-16"?><d2LogicalModel xmlns="http://datex2.eu/schema/2/2_0">'
+               '<situationRecord id="abc"><situationRecordCreationTime>2026-11-20T10:00:00+0200</situationRecordCreationTime>'
+               '<overallStartTime>2026-11-20T09:00:00+0200</overallStartTime>'
+               '<value lang="bg">Път I-1 затворен поради наводнение</value><pointCoordinates><latitude>0.002</latitude>'
+               '<longitude>0.5</longitude></pointCoordinates></situationRecord></d2LogicalModel>')
+        out = watcher.datex_records(xml, "closure", self.net, NOW, "test")
+        self.assertEqual(out[0]["crossings"], ["X001"])  # 222 m away, road 1 named in the record
+        planned = watcher.datex_records(xml.replace(" поради наводнение", ""), "closure", self.net, NOW, "test")
+        self.assertEqual(planned[0]["kind"], "planned")  # no hazard wording: planned works, context only
+        watcher.apply(out, self.net, NOW)
+        item = incidents._read()[0]
+        self.assertEqual((item["status"], item["failed_at"]), ("confirmed", "2026-11-20T07:00:00+00:00"))
+
+    def test_flood_extent_near_approach(self):
+        square = {"type": "Polygon", "coordinates": [[[1.502, -0.001], [1.51, -0.001], [1.51, 0.001], [1.502, 0.001], [1.502, -0.001]]]}
+        out = watcher.flood_records({"features": [{"geometry": square}]}, self.net, "GFM", "test", NOW.isoformat())
+        self.assertEqual(out[0]["crossings"], ["X002"])  # ~220 m from the polygon edge
+
+    def test_unconfigured_source_is_not_an_error(self):
+        with mock.patch.dict(os.environ, {"FLOOD_EXTENT_URL": ""}):
+            watcher.scan(self.net, NOW, {"Flood extent (GFM / CEMS)": watcher.flood_extent_signals})
+        self.assertEqual(watcher.health()["Flood extent (GFM / CEMS)"]["status"], "not configured")
+
+    def test_full_replay_uses_recorded_road_agency_data(self):
+        incidents.load_demo(full=True, now=NOW)
+        items = {i["name"]: i for i in incidents._read() if i["status"] != "suspected"}
+        kiten = items["Road 99 bridge near Kiten"]
+        self.assertEqual(kiten["status"], "reported")
+        self.assertEqual(kiten["evidence"][0]["source"], "Road agency (DATEX II)")
+
 
 if __name__ == "__main__":
     unittest.main()

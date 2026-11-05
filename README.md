@@ -546,8 +546,11 @@ For confirmed closures the console shows:
 
 "Load replay" re-creates the 5 September 2023 situation (CEMS EMSR693: "the
 main road Tsarevo - Sinemoretz is closed"), shifted to the present time. Crossings
-inside the official EMSR693 area of interest, stored in `data/emsr693_aoi.json`, are
-flagged as suspected.
+inside the official EMSR693 area of interest, stored in `data/replay/emsr693_aoi.json`, are
+flagged as suspected. "Full 13-day official record" also plays the real road-agency
+DATEX II files of 15 and 18 September 2023 (`data/replay/`) through the same adapters
+and fusion rule. The Kiten bridge (II-99) becomes *reported*. The 72-hour duration of
+the road-9901 closure is assumed.
 
 ### Official-source watcher (`watcher.py`)
 
@@ -555,11 +558,21 @@ The server checks official sources every `WATCH_MINUTES` (default 15). Set `WATC
 to disable this. To check immediately, use the console button or `POST /api/incidents/scan`
 (at most once a minute).
 
-| Source | Rule | Flag |
-| --- | --- | --- |
-| Copernicus EMS Rapid Mapping | open activation in Bulgaria whose area of interest contains a crossing | suspected |
-| GloFAS (via Open-Meteo flood API) | 10-day forecast above the cell's 5-year 99th percentile (high) or record (extreme) | suspected for crossings in that 0.1° cell |
-| Meteoalarm (NIMH) | live orange or red rain, flood, thunderstorm or coastal warning for Burgas (NUTS3 BG341) | suspected for the 5 highest-consequence crossings |
+| Source | Signal kind |
+| --- | --- |
+| Road agency DATEX II (`datasheet.api.bg`, r01 closed roads, r02 restricted roadways) | `closure` / `restriction` if the record names a hazard (flood, rain, landslide…), else `planned`. Matches crossings within 400 m on the named road (150 m if no road is named) |
+| Flood extent GeoJSON (GFM / CEMS delineation): set `FLOOD_EXTENT_URL` and optionally `FLOOD_EXTENT_SOURCE` | `inundation` within 300 m of a crossing. Shows "not configured" until set |
+| Copernicus EMS Rapid Mapping | `aoi`: an open activation in Bulgaria whose area of interest contains a crossing |
+| GloFAS (via Open-Meteo flood API) | `exposure`: 10-day forecast above the cell's 5-year 99th percentile or record |
+| Meteoalarm (NIMH) | `warning`: orange or red warning for Burgas, applied to the 5 highest-consequence crossings |
+
+Fusion (automatic; an operator can always override):
+- F1: a hazard closure means **confirmed**.
+- F2: flood extent plus at least one independent source means **confirmed**.
+- F3: flood extent alone, or a hazard restriction, means **reported**.
+- F4: anything else means **suspected**.
+
+Every incident keeps its evidence list.
 
 Rules:
 - Signals never downgrade or duplicate an incident.

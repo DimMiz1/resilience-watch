@@ -31,11 +31,11 @@ SOURCES.update({
                 "Requires a local, reviewed training dataset; no fire probabilities are invented without labels."),
     "sentinel_indices": ("Copernicus Sentinel-2 water and burn indicators", copernicus.sentinel_indices_feed,
                          "Direct CDSE statistics require OAuth credentials. Spectral indicators, not confirmed hazards."),
-    "effis": ("Copernicus EMS – EFFIS burnt areas", hazards.effis_feed,
+    "effis": ("Copernicus EMS â€“ EFFIS burnt areas", hazards.effis_feed,
               "Mapped burnt-area perimeters (MODIS 30 days + VIIRS NRT). Where land burned, not where fire is now."),
-    "glofas": ("Copernicus EMS – GloFAS river forecast", hazards.glofas_feed,
+    "glofas": ("Copernicus EMS â€“ GloFAS river forecast", hazards.glofas_feed,
                "Daily discharge of a ~5 km river cell vs. its own 10-year record. Not street-level flooding."),
-    "cems": ("Copernicus EMS – Rapid Mapping activations", hazards.cems_feed,
+    "cems": ("Copernicus EMS â€“ Rapid Mapping activations", hazards.cems_feed,
              "Official activations; centroids only. Open the activation for mapped extents."),
     "flood_ml": ("Rain-to-flood ML model (ERA5 + GloFAS + ECMWF)", ml.flood_ml_feed,
                  "Logistic regression trained per location; validated on the newest 20% of the record. Not an official warning."),
@@ -210,7 +210,7 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/incidents":
                 incidents.update(body)
             elif path == "/api/incidents/demo":
-                incidents.load_demo(body.get("key"))
+                incidents.load_demo(body.get("key"), full=bool(body.get("full")))
             elif path == "/api/incidents/scan":
                 global _last_scan
                 if time.monotonic() - _last_scan < 60:

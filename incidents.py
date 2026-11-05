@@ -1,8 +1,8 @@
 """Incident mode: live closures, cost clock, proposed response and repair priority.
 
-Status flow per crossing: suspected (automatic or anyone) -> reported (anyone) -> confirmed (operator)
--> reopened (operator). Only confirmed closures drive the cost clock and the response plan.
-Satellite data can flag risk; a person confirms failure.
+Status flow per crossing: suspected -> reported -> confirmed -> reopened.
+Automatic: the watcher's fusion rule (watcher.fuse) sets status from official evidence and stores that evidence.
+Manual: anyone can report; only an operator can confirm or reopen. Only confirmed closures drive the cost clock.
 """
 from datetime import datetime, timedelta, timezone
 import hmac
@@ -24,14 +24,14 @@ def _now():
     return datetime.now(timezone.utc)
 
 
-def _time(value, now):
+def _time(value, now, system=False):
     if value in (None, ""):
         return now
     parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
     if parsed.tzinfo is None:
         raise ValueError("Time must include a timezone, e.g. 2026-11-05T10:00:00+02:00")
     parsed = parsed.astimezone(timezone.utc)
-    if parsed > now + timedelta(minutes=5) or parsed < now - timedelta(days=30):
+    if parsed > now + timedelta(minutes=5) or (parsed < now - timedelta(days=30) and not system):
         raise ValueError("Time must be within the last 30 days and not in the future.")
     return parsed
 
@@ -68,15 +68,17 @@ def _optional(value, name, low, high):
     return network._number(value, name, low, high)
 
 
-def update(body, net=None, now=None):
+def update(body, net=None, now=None, system=False):
+    """system=True only for the watcher's fusion rule (never reachable from HTTP)."""
     net, now = net or network.load(), now or _now()
     crossing, status = body.get("crossing"), body.get("status")
     if crossing not in net.crossings:
         raise ValueError("Unknown crossing.")
     if status not in STATUSES:
         raise ValueError(f"Status must be one of: {', '.join(STATUSES)}.")
-    _authorise(status, body.get("key"))
-    at = _time(body.get("at"), now)
+    if not system:
+        _authorise(status, body.get("key"))
+    at = _time(body.get("at"), now, system)
     note = str(body.get("note") or "")[:200]
     with _lock:
         items = _read()
@@ -98,8 +100,14 @@ def update(body, net=None, now=None):
         for field, low, high in (("expected_hours", 1, 2160), ("vehicles_per_day", 0, 200000), ("occupancy", 1, 5)):
             if body.get(field) not in (None, ""):
                 active[field] = _optional(body[field], field, low, high)
+        if system:
+            active["evidence"] = (active.get("evidence", []) + list(body.get("evidence") or []))[-20:]
+            if status == active.get("status"):
+                _write(items)
+                return active
         active["status"] = status
-        active["history"].append({"status": status, "at": _iso(at), "recorded_at": _iso(now), "note": note})
+        by = "automatic rule" if system else "operator" if status in OPERATOR_ONLY else "report"
+        active["history"].append({"status": status, "at": _iso(at), "recorded_at": _iso(now), "note": note, "by": by})
         _write(items)
         return active
 
@@ -110,19 +118,12 @@ def reset(key=None):
         _write([])
 
 
-def load_demo(key=None, net=None, now=None):
-    """Replay of 5 Sep 2023, shifted to now: CEMS EMSR693 reported road Tsarevo-Sinemorets closed."""
+def load_demo(key=None, net=None, now=None, full=False):
+    """Replay of recorded 2023 official data (EMSR693, road agency DATEX II) through the live adapters, shifted to now."""
     net, now = net or network.load(), now or _now()
     reset(key)
-    ranked = [c for c in network.bridges(net)["crossings"] if c["road"] == "9901"]
-    main = ranked[0]["id"]
-    update({"crossing": main, "status": "reported", "at": _iso(now - timedelta(hours=6, minutes=30)), "key": key,
-            "note": "Replay of 5 Sep 2023. EMSR693: 'The main road Tsarevo - Sinemoretz is closed.' Exact bridge not confirmed."},
-           net, now)
-    update({"crossing": main, "status": "confirmed", "at": _iso(now - timedelta(hours=6)), "expected_hours": 72,
-            "key": key, "note": "Demo: confirmed by operator."}, net, now)
     import watcher  # local import: watcher depends on this module
-    watcher.apply(watcher.replay_signals(net), net, now)
+    watcher.replay(net, now, full, key)
 
 
 def _hours(start, end):

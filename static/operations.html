@@ -53,8 +53,9 @@
   <div class="figures" id="summary"></div>
 
   <section class="card" aria-labelledby="src-title">
-    <h2 id="src-title" style="margin-top:0">Official sources <span class="muted">(checked automatically every 15 minutes; they flag risk, never confirm)</span></h2>
+    <h2 id="src-title" style="margin-top:0">Official sources <span class="muted">(checked automatically every 15 minutes; status follows rules F1–F4 below, an operator can always override)</span></h2>
     <div id="sources"></div>
+    <p class="muted">F1 official closure record → confirmed · F2 observed flood extent + an independent source → confirmed · F3 observed flood extent or official restriction → reported · F4 area of interest, river forecast or weather warning → suspected. Detection takes hours (satellite passes, agency publishing); recalculation takes milliseconds.</p>
     <div class="buttons"><button type="button" id="scan">Check official sources now</button></div>
   </section>
 
@@ -100,7 +101,8 @@
   <div id="log"></div>
 
   <div class="buttons">
-    <button type="button" id="demo">Load replay: Tsarevo, 5 Sep 2023</button>
+    <button type="button" id="demo">Load replay: Tsarevo, first 6 hours</button>
+    <button type="button" id="demo-full">Load replay: full 13-day official record</button>
     <button type="button" id="reset">Clear all incidents</button>
   </div>
   <p class="muted">Free-flow travel times over mapped main roads (OpenStreetMap, ODbL). Population: OSM tags. Person-hours are computed only from traffic figures that you enter. Disconnected journeys are counted as trips prevented, never as infinite hours.</p>

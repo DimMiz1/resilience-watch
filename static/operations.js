@@ -66,9 +66,10 @@
         p.disconnected ? "<b>cut off</b>" : `${p.hospital_after} min (+${p.hospital_delta})`,
         p.disconnected ? "–" : esc([p.hospital_after_name, (p.route_after || []).join(", ")].filter(Boolean).join(" via "))])) : `<p class="muted">No confirmed closures.</p>`;
 
-    $("log").innerHTML = table(["Incident", "Crossing", "Status", "History"],
+    $("log").innerHTML = table(["Incident", "Crossing", "Status", "History", "Evidence"],
       s.incidents.map((i) => [i.id, esc(i.name), `<span class="pill s-${i.status}">${i.status}</span>`,
-        i.history.map((h) => `${h.status} ${new Date(h.at).toLocaleString("en-GB")}${h.note ? `: ${esc(h.note)}` : ""}`).join("<br>")]));
+        i.history.map((h) => `${h.status} ${new Date(h.at).toLocaleString("en-GB")}${h.by ? ` (${esc(h.by)})` : ""}${h.note ? `: ${esc(h.note)}` : ""}`).join("<br>"),
+        (i.evidence || []).map((e) => `${esc(e.source)}: ${esc(e.kind)} <span class="muted">(${esc(e.confidence)})</span>`).join("<br>") || "–"]));
     const when = (t) => (t ? new Date(t).toLocaleString("en-GB", {dateStyle: "short", timeStyle: "short"}) : "–");
     $("sources").innerHTML = table(["Source", "Status", "Last good data", "Result"],
       Object.entries(s.sources || {}).map(([name, h]) => {
@@ -121,12 +122,15 @@
       if (e.target.dataset.key) { e.target.checked ? done.add(e.target.dataset.key) : done.delete(e.target.dataset.key); render(); }
     });
     $("scan").addEventListener("click", () => {
-      $("status-line").textContent = "Checking Copernicus EMS, GloFAS and Meteoalarm…";
+      $("status-line").textContent = "Checking road agency, Copernicus EMS, flood extent, GloFAS and Meteoalarm…";
       post("/api/incidents/scan", {}).then(() => { $("status-line").textContent = "Official sources checked."; })
         .catch((e) => { $("status-line").textContent = e.message; });
     });
     $("demo").addEventListener("click", () => post("/api/incidents/demo", {key: $("key").value || undefined})
-      .then(() => { $("status-line").textContent = "Replay loaded: road 9901 closure confirmed 6 hours ago; crossings inside the official EMSR693 area flagged."; })
+      .then(() => { $("status-line").textContent = "Replay loaded: recorded official data, first 6 hours. Road 9901 closure confirmed; crossings inside the EMSR693 area flagged."; })
+      .catch((e) => { $("status-line").textContent = e.message; }));
+    $("demo-full").addEventListener("click", () => post("/api/incidents/demo", {key: $("key").value || undefined, full: true})
+      .then(() => { $("status-line").textContent = "Replay loaded: 13 days of recorded official data. Road agency record of 15 Sep set Kiten bridge to reported automatically."; })
       .catch((e) => { $("status-line").textContent = e.message; }));
     $("reset").addEventListener("click", () => confirm("Clear all incidents?") && post("/api/incidents/reset", {key: $("key").value || undefined})
       .catch((e) => { $("status-line").textContent = e.message; }));
