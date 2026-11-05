@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bridge closure impact · Resilience Watch</title>
+  <meta name="description" content="Model the indirect cost of a bridge closure: lost hospital access, detours and disconnected settlements.">
+  <link rel="icon" href="/app-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script defer src="/impact.js"></script>
+  <style>
+    .impact {max-width: 960px; margin: 0 auto; padding: 12px}
+    .impact header {display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between}
+    .impact h1 {font-size: 1.35rem; margin: 4px 0}
+    #impact-map {height: 52vh; min-height: 300px; border: 1px solid var(--line); border-radius: var(--radius)}
+    .controls {display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 12px 0}
+    .controls label {display: grid; gap: 4px; font-weight: 600; font-size: .9rem; min-width: 0}
+    .controls select, .controls input {width: 100%; min-width: 0}
+    .figures {display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin: 12px 0}
+    .figure {background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px}
+    .figure b {display: block; font-size: 1.6rem; line-height: 1.2}
+    .tag {display: inline-block; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 1px 6px; border-radius: 4px; color: #fff}
+    .tag.observed {background: #0d4d7c} .tag.modelled {background: #61509c} .tag.assumed {background: #805008}
+    .impact table {width: 100%; border-collapse: collapse; background: var(--panel); font-size: .92rem}
+    .impact th, .impact td {padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left}
+    .cut {color: var(--danger); font-weight: 700}
+    details {margin: 12px 0}
+  </style>
+</head>
+<body>
+<main class="impact">
+  <header>
+    <div><h1>Bridge closure impact</h1><p class="muted" id="region">Loading road network…</p></div>
+    <a class="button-link" href="/">Back to map</a>
+  </header>
+  <p>Tap a bridge on the map. The model assumes it is closed and recomputes access to hospitals over the mapped road network. It does <strong>not</strong> say the bridge has failed.</p>
+  <div id="impact-map" role="region" aria-label="Bridges in the modelled region"></div>
+  <div class="controls">
+    <label>Bridge (most consequential first)<select id="bridge"></select></label>
+    <label>Closure (hours)<input id="hours" type="number" min="1" max="720" value="24"></label>
+    <label>Access threshold (min)<input id="threshold" type="number" min="5" max="180" value="30"></label>
+  </div>
+  <details>
+    <summary>Optional: person-hours and value of time (your own figures)</summary>
+    <p class="muted">No traffic counts are invented. Enter a daily vehicle count for the bridge (for example from a road-authority count) to estimate lost hours.</p>
+    <div class="controls">
+      <label>Vehicles per day<input id="journeys" type="number" min="0" max="200000" placeholder="unknown"></label>
+      <label>People per vehicle<input id="occupancy" type="number" min="1" max="5" step="0.1" placeholder="unknown"></label>
+      <label>Value of time (€/h)<input id="vot" type="number" min="0" max="200" step="0.5" placeholder="unknown"></label>
+    </div>
+  </details>
+  <p id="wording" aria-live="polite"></p>
+  <div class="figures" id="figures"></div>
+  <div id="table"></div>
+  <details>
+    <summary>Method, assumptions and sources</summary>
+    <ul id="notes"></ul>
+    <p class="muted">Person-hours = vehicles/day × closure days × occupancy × detour minutes ÷ 60. Population losing access counts people whose nearest mapped hospital moves from within the threshold to beyond it. Map data © OpenStreetMap contributors (ODbL).</p>
+  </details>
+</main>
+</body>
+</html>

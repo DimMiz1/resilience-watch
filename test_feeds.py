@@ -265,6 +265,18 @@ class HttpTests(unittest.TestCase):
             urllib.request.urlopen(self.base + "/share.js")
         self.assertEqual(error.exception.code, 404)
 
+    def test_infrastructure_scenario_routes(self):
+        with urllib.request.urlopen(self.base + "/api/infrastructure/bridges") as response:
+            first = json.load(response)["crossings"][0]["id"]
+        with urllib.request.urlopen(self.base + f"/api/infrastructure/scenario?bridge={first}&hours=12") as response:
+            body = json.load(response)
+            self.assertIn("closed for 12 hours", body["wording"])
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            urllib.request.urlopen(self.base + "/api/infrastructure/scenario?bridge=NOPE")
+        self.assertEqual(error.exception.code, 400)
+        with urllib.request.urlopen(self.base + "/impact") as response:
+            self.assertIn('src="/impact.js"', response.read().decode())
+
     def test_access_logs_do_not_record_gps_queries(self):
         with mock.patch.object(Handler, "log_message") as log:
             with urllib.request.urlopen(self.base + "/about?lat=42.123456&secret=private"):

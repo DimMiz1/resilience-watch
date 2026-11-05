@@ -15,6 +15,7 @@ import copernicus
 import fire_ml
 import map_data
 import emergency
+import network
 
 SOURCES.update({
     "emergency": ("Country, region and official contacts", emergency.emergency_feed,
@@ -142,6 +143,19 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self.json(200, evacuate(lat, lon))
             return
+        if request.path == "/api/infrastructure/bridges":
+            self.json(200, network.bridges())
+            return
+        if request.path == "/api/infrastructure/scenario":
+            query = {k: v[0] for k, v in urllib.parse.parse_qs(request.query).items()}
+            try:
+                ids = [x for x in query.get("bridge", "").split(",") if x][:5]
+                self.json(200, network.scenario(ids, query.get("hours", 24), query.get("threshold", 30),
+                                                 query.get("journeys"), query.get("occupancy"),
+                                                 query.get("value_of_time")))
+            except ValueError as error:
+                self.json(400, {"error": str(error)})
+            return
         if request.path.startswith("/api/"):
             source = request.path[len("/api/"):]
             if source not in SOURCES:
@@ -156,6 +170,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         files = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/about": ("overview.html", "text/html; charset=utf-8"),
+                 "/impact": ("impact.html", "text/html; charset=utf-8"),
+                 "/impact.js": ("impact.js", "text/javascript; charset=utf-8"),
                  "/app.js": ("app.js", "text/javascript; charset=utf-8"),
                  "/rain_renderer.js": ("rain_renderer.js", "text/javascript; charset=utf-8"),
                  "/style.css": ("style.css", "text/css; charset=utf-8"),

@@ -492,6 +492,34 @@ The 30-day dry-spell input can be censored, which is reported. Agree training
 coverage accordingly. A synthetic test only checks the training machinery,
 not real-world fire-prediction skill.
 
+## Infrastructure disruption: bridge-closure scenario
+
+`/impact` models the **indirect cost** of losing a crossing: how access changes
+when you assume a bridge is closed. Repair costs are out of scope. It never
+claims a bridge has failed.
+
+- **Data (observed):** a bundled OpenStreetMap extract (`data/burgas_south.json`)
+  of the Burgas south coast, with roads classed unclassified and above, 74 bridge
+  crossings, settlement population tags and `amenity=hospital` records. It is
+  loaded from disk, so Overpass is not called for each request.
+- **Model (modelled):** Dijkstra travel times at free-flow speeds by road class,
+  to the nearest mapped hospital and to UMBAL Burgas, before and after closure.
+  It reports the detour, the people losing access within threshold *T*
+  (P_lost = Σ P_i where t_before ≤ T < t_after), and disconnected settlements.
+  Disconnected settlements are listed separately and never shown as infinite hours.
+- **Inputs (assumed):** person-hours = vehicles/day × days × occupancy × detour ÷ 60.
+  This is computed only from traffic figures that the user enters. A euro value
+  appears only if a value of time is supplied.
+- Bridges are ranked by modelled consequence. This ranking is not a structural
+  risk score.
+
+API: `GET /api/infrastructure/bridges`, and
+`GET /api/infrastructure/scenario?bridge=X045&hours=24&threshold=30[&journeys=&occupancy=&value_of_time=]`.
+
+To refresh or change the region, save an Overpass `out tags geom` result for
+highways, places and hospitals. Then run
+`py -3 resilience\build_network.py raw.json resilience\data\burgas_south.json`.
+
 ## Evacuation guidance (advisory)
 
 `/api/evacuate?lat=..&lon=..` combines the following inputs:

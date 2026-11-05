@@ -8,16 +8,16 @@ APP_FILES = (
     "server.py", "feeds.py", "hazards.py", "emergency.py", "map_data.py",
     "ml.py", "fire_ml.py", "copernicus.py", "local_geo.py", "local_helpers.py",
     "local_ml.py", "Dockerfile", ".dockerignore", "render.yaml", "README.md",
-    "package_release.py",
+    "package_release.py", "network.py", "build_network.py", "data/burgas_south.json",
 )
 STATIC_FILES = (
-    "index.html", "overview.html", "app.js", "rain_renderer.js",
+    "index.html", "overview.html", "impact.html", "impact.js", "app.js", "rain_renderer.js",
     "style.css", "manifest.webmanifest", "offline.html", "sw.js",
     "app-icon.svg", "app-icon-192.png", "app-icon-512.png",
 )
 TEST_FILES = (
     "test_copernicus.py", "test_destinations.py", "test_emergency.py",
-    "test_feeds.py", "test_map_data.py", "test_ml.py", "test_release.py",
+    "test_feeds.py", "test_map_data.py", "test_ml.py", "test_release.py", "test_network.py",
     "test_product_ui.js", "test_location.js", "test_requests.js",
     "test_water.js", "test_mobile.js", "test_rain_view.js",
     "test_rain_renderer.js", "test_phone_app.js",
