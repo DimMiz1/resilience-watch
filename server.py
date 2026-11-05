@@ -16,6 +16,7 @@ import fire_ml
 import map_data
 import emergency
 import network
+import incidents
 
 SOURCES.update({
     "emergency": ("Country, region and official contacts", emergency.emergency_feed,
@@ -143,6 +144,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self.json(200, evacuate(lat, lon))
             return
+        if request.path == "/api/incidents":
+            self.json(200, incidents.situation())
+            return
         if request.path == "/api/infrastructure/bridges":
             self.json(200, network.bridges())
             return
@@ -172,6 +176,8 @@ class Handler(BaseHTTPRequestHandler):
                  "/about": ("overview.html", "text/html; charset=utf-8"),
                  "/impact": ("impact.html", "text/html; charset=utf-8"),
                  "/impact.js": ("impact.js", "text/javascript; charset=utf-8"),
+                 "/operations": ("operations.html", "text/html; charset=utf-8"),
+                 "/operations.js": ("operations.js", "text/javascript; charset=utf-8"),
                  "/app.js": ("app.js", "text/javascript; charset=utf-8"),
                  "/rain_renderer.js": ("rain_renderer.js", "text/javascript; charset=utf-8"),
                  "/style.css": ("style.css", "text/css; charset=utf-8"),
@@ -186,6 +192,32 @@ class Handler(BaseHTTPRequestHandler):
             return
         filename, mime = files[request.path]
         self.respond(200, (STATIC / filename).read_bytes(), mime)
+
+    def do_POST(self):
+        path = urllib.parse.urlsplit(self.path).path
+        if path not in ("/api/incidents", "/api/incidents/demo", "/api/incidents/reset"):
+            self.json(404, {"error": "Not found."})
+            return
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+            if not 0 <= length <= 4096:
+                raise ValueError("Request body too large.")
+            body = json.loads(self.rfile.read(length) or b"{}")
+            if not isinstance(body, dict):
+                raise ValueError("JSON object expected.")
+            if path == "/api/incidents":
+                incidents.update(body)
+            elif path == "/api/incidents/demo":
+                incidents.load_demo(body.get("key"))
+            else:
+                incidents.reset(body.get("key"))
+        except PermissionError as error:
+            self.json(403, {"error": str(error)})
+            return
+        except ValueError as error:
+            self.json(400, {"error": str(error)})
+            return
+        self.json(200, incidents.situation())
 
 
 def main(argv=None):

@@ -31,8 +31,14 @@ class Network:
 
     def times(self, sources, closed=frozenset(), reverse=True):
         """Minutes from every node to the nearest source (reverse graph) or from sources outward."""
+        return self.tree(sources, closed, reverse)[0]
+
+    def tree(self, sources, closed=frozenset(), reverse=True):
+        """Shortest-path tree: (minutes, nearest source, edge towards that source) per node."""
         adjacency = self.backward if reverse else self.forward
         best = {s: 0.0 for s in sources}
+        origin = {s: s for s in sources}
+        via = {}
         queue = [(0.0, s) for s in sources]
         heapq.heapify(queue)
         while queue:
@@ -45,8 +51,21 @@ class Network:
                 nt = t + self.edges[i]["min"]
                 if nt < best.get(m, math.inf):
                     best[m] = nt
+                    origin[m] = origin[n]
+                    via[m] = (i, n)
                     heapq.heappush(queue, (nt, m))
-        return best
+        return best, origin, via
+
+    def roads(self, node, via, limit=6):
+        """Road numbers along the path from node to its source, in travel order (names if unnumbered)."""
+        names = []
+        while node in via:
+            edge, node = via[node]
+            road = self.edges[edge].get("road")
+            if road and road not in names and road not in ("unclassified", "tertiary", "residential"):
+                names.append(road)
+        refs = [n for n in names if any(ch.isdigit() for ch in n)]
+        return (refs or names)[:limit]
 
     def closed_edges(self, ids):
         unknown = [x for x in ids if x not in self.crossings]
@@ -113,7 +132,11 @@ def scenario(ids, hours=24, threshold=30, journeys=None, occupancy=None, value_o
     closed = net.closed_edges(ids)
     hospitals = [h["node"] for h in net.data["hospitals"]]
     regional = [h["node"] for h in net.regional]
-    base_h, scen_h = net.times(hospitals), net.times(hospitals, closed)
+    base_h = net.times(hospitals)
+    scen_h, scen_origin, scen_via = net.tree(hospitals, closed)
+    names = {}
+    for h in net.data["hospitals"]:
+        names.setdefault(h["node"], h["name"])
     base_r, scen_r = net.times(regional), net.times(regional, closed)
 
     def minutes(table, node):
@@ -137,6 +160,9 @@ def scenario(ids, hours=24, threshold=30, journeys=None, occupancy=None, value_o
             cut.append(p["name"])
             people_cut += p["population"] or 0
         if row["disconnected"] or (row["hospital_delta"] or 0) >= 1 or (row["regional_delta"] or 0) >= 1:
+            if b is not None:
+                row["hospital_after_name"] = names[scen_origin[p["node"]]]
+                row["route_after"] = net.roads(p["node"], scen_via)
             settlements.append(row)
     settlements.sort(key=lambda r: (not r["disconnected"], -(r["hospital_delta"] or 0), -(r["regional_delta"] or 0)))
 

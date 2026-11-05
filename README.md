@@ -520,6 +520,41 @@ To refresh or change the region, save an Overpass `out tags geom` result for
 highways, places and hospitals. Then run
 `py -3 resilience\build_network.py raw.json resilience\data\burgas_south.json`.
 
+## Incident mode: real-time decision support for authorities
+
+`/operations` is the authority console. It follows a **detect, confirm,
+recalculate, respond** loop:
+
+| Status | Who sets it | Effect |
+| --- | --- | --- |
+| suspected | anyone, later automatic satellite and forecast flags | inspection proposed; no impact counted |
+| reported | anyone, such as a patrol or a citizen | shown as "if confirmed" impact |
+| confirmed | operator | counted in the impact, cost clock and response |
+| reopened | operator | incident closed |
+
+Satellite data flags risk. A person confirms failure. In the 2023 Tsarevo case,
+ERA5 rainfall and the COSMO-SkyMed SAR scene both missed the flood. That
+is why the software does not mark failures automatically.
+
+For confirmed closures the console shows:
+- who is cut off;
+- the extra time to emergency care, with the new route;
+- isolation person-hours (people cut off × hours);
+- a cost clock (person-hours lost), only when the operator enters vehicles per day and occupancy;
+- repair priority;
+- a rule-based response checklist.
+
+"Load replay" re-creates the 5 September 2023 situation (CEMS EMSR693: "the
+main road Tsarevo - Sinemoretz is closed"), shifted to the present time.
+
+API: `GET /api/incidents`; `POST /api/incidents` with
+`{crossing, status, at?, note?, expected_hours?, vehicles_per_day?, occupancy?, key?}`;
+`POST /api/incidents/demo`; `POST /api/incidents/reset`.
+
+Set the environment variable `OPERATOR_KEY` to restrict confirm, reopen and reset to operators. Without it the console runs
+in open demonstration mode. The store is `.cache/incidents.json`, or the path in `INCIDENT_STORE`.
+On the Render free plan it resets on every restart.
+
 ## Evacuation guidance (advisory)
 
 `/api/evacuate?lat=..&lon=..` combines the following inputs:

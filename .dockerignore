@@ -13,6 +13,7 @@
 !local_helpers.py
 !local_ml.py
 !network.py
+!incidents.py
 !data/
 !data/burgas_south.json
 !static/
@@ -20,6 +21,8 @@
 !static/overview.html
 !static/impact.html
 !static/impact.js
+!static/operations.html
+!static/operations.js
 !static/app.js
 !static/rain_renderer.js
 !static/style.css

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operations · Resilience Watch</title>
+  <meta name="description" content="Incident decision support: confirmed closures, who is cut off, indirect cost clock and proposed response.">
+  <link rel="icon" href="/app-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script defer src="/operations.js"></script>
+  <style>
+    .ops {max-width: 1100px; margin: 0 auto; padding: 12px}
+    .ops header {display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between}
+    .ops h1 {font-size: 1.35rem; margin: 4px 0}
+    .ops h2 {font-size: 1.1rem; margin: 18px 0 8px}
+    .grid {display: grid; gap: 12px}
+    @media (min-width: 900px) {.grid {grid-template-columns: 3fr 2fr}}
+    #ops-map {height: 50vh; min-height: 300px; border: 1px solid var(--line); border-radius: var(--radius)}
+    .card {background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px}
+    .figures {display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 12px 0}
+    .figure {background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px}
+    .figure b {display: block; font-size: 1.6rem; line-height: 1.2; font-variant-numeric: tabular-nums}
+    .form {display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr))}
+    .form label {display: grid; gap: 4px; font-weight: 600; font-size: .88rem; min-width: 0}
+    .form input, .form select {width: 100%; min-width: 0}
+    .buttons {display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px}
+    .btn-suspected {border-color: #b8860b} .btn-reported {border-color: #d2691e}
+    .btn-confirmed {background: #a32822; color: #fff; border-color: #a32822} .btn-reopened {background: #1f7a3a; color: #fff; border-color: #1f7a3a}
+    .pill {display: inline-block; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 1px 7px; border-radius: 4px; color: #fff}
+    .p-critical, .s-confirmed {background: #a32822} .p-high, .s-reported {background: #b05a00} .p-medium, .s-suspected {background: #806000}
+    .s-reopened {background: #1f7a3a} .tag-observed {background: #2a6f97} .tag-modelled {background: #61509c} .tag-assumed {background: #805008}
+    .actions {list-style: none; padding: 0; margin: 0; display: grid; gap: 8px}
+    .actions li {display: flex; gap: 10px; align-items: flex-start; background: var(--panel); border: 1px solid var(--line); border-left-width: 5px; border-radius: var(--radius); padding: 10px}
+    .actions li.critical {border-left-color: #a32822} .actions li.high {border-left-color: #b05a00} .actions li.medium {border-left-color: #806000}
+    .actions li.done {opacity: .5; text-decoration: line-through}
+    .ops table {width: 100%; border-collapse: collapse; background: var(--panel); font-size: .9rem}
+    .ops th, .ops td {padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top}
+    .banner {padding: 10px 12px; border-radius: var(--radius); background: #fff4e5; border: 1px solid #e0b070; margin: 8px 0}
+    #status-line {min-height: 1.5em}
+  </style>
+</head>
+<body>
+<main class="ops">
+  <header>
+    <div><h1>Operations: incident response</h1>
+      <p class="muted">Satellites flag risk. People confirm failure. The software recalculates the consequences and proposes a response.</p></div>
+    <div class="buttons"><a class="button-link" href="/impact">Planning view</a><a class="button-link" href="/">Public map</a></div>
+  </header>
+  <p class="banner" id="mode"></p>
+
+  <div class="figures" id="summary"></div>
+
+  <div class="grid">
+    <section>
+      <div id="ops-map" role="region" aria-label="Crossings and incident status"></div>
+      <p class="muted">Grey: open · amber: suspected · orange: reported · red: confirmed closed · green: reopened. Tap a crossing to update it.</p>
+    </section>
+    <section class="card" aria-labelledby="sel-title">
+      <h2 id="sel-title">Update a crossing</h2>
+      <div class="form">
+        <label style="grid-column: 1 / -1">Crossing<select id="crossing"></select></label>
+        <label>Time of event<input id="at" type="datetime-local"></label>
+        <label>Expected closure (h)<input id="expected" type="number" min="1" max="2160" placeholder="unknown"></label>
+        <label>Vehicles per day<input id="vehicles" type="number" min="0" max="200000" placeholder="unknown"></label>
+        <label>People per vehicle<input id="occupancy" type="number" min="1" max="5" step="0.1" placeholder="unknown"></label>
+        <label style="grid-column: 1 / -1">Note / source<input id="note" maxlength="200" placeholder="e.g. Police patrol, 14:20, deck washed out"></label>
+        <label id="key-label" style="grid-column: 1 / -1">Operator key<input id="key" type="password" autocomplete="off"></label>
+      </div>
+      <div class="buttons">
+        <button type="button" class="btn-suspected" data-status="suspected">Flag at risk</button>
+        <button type="button" class="btn-reported" data-status="reported">Report closure</button>
+        <button type="button" class="btn-confirmed" data-status="confirmed">Confirm closed</button>
+        <button type="button" class="btn-reopened" data-status="reopened">Reopen</button>
+      </div>
+      <p id="status-line" role="status" aria-live="polite"></p>
+    </section>
+  </div>
+
+  <h2>Proposed response <span class="muted">(generated from the model; the operator decides)</span></h2>
+  <ul class="actions" id="actions"></ul>
+
+  <h2>Repair priority</h2>
+  <div id="repair"></div>
+
+  <h2>Indirect cost clock</h2>
+  <div id="cost"></div>
+
+  <h2>Affected settlements</h2>
+  <div id="settlements"></div>
+
+  <h2>Incident log</h2>
+  <div id="log"></div>
+
+  <div class="buttons">
+    <button type="button" id="demo">Load replay: Tsarevo, 5 Sep 2023</button>
+    <button type="button" id="reset">Clear all incidents</button>
+  </div>
+  <p class="muted">Free-flow travel times over mapped main roads (OpenStreetMap, ODbL). Population: OSM tags. Person-hours are computed only from traffic figures that you enter. Disconnected journeys are counted as trips prevented, never as infinite hours.</p>
+</main>
+</body>
+</html>

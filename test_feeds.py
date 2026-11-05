@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 import io
 import json
+import os
 from pathlib import Path
+import tempfile
 import threading
 import unittest
 from unittest import mock
@@ -9,6 +11,7 @@ import urllib.error
 import urllib.request
 
 import feeds
+import incidents
 from local_helpers import haversine_km, observation_age_minutes, parse_firms_csv
 from server import Handler, ThreadingHTTPServer
 import server
@@ -276,6 +279,29 @@ class HttpTests(unittest.TestCase):
         self.assertEqual(error.exception.code, 400)
         with urllib.request.urlopen(self.base + "/impact") as response:
             self.assertIn('src="/impact.js"', response.read().decode())
+
+    def test_incident_routes(self):
+        def post(path, body):
+            request = urllib.request.Request(self.base + path, data=json.dumps(body).encode(),
+                                             headers={"Content-Type": "application/json"}, method="POST")
+            with urllib.request.urlopen(request) as response:
+                return json.load(response)
+
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.object(incidents, "STORE", Path(tmp) / "incidents.json"), \
+                mock.patch.dict(os.environ, {"OPERATOR_KEY": ""}):
+            state = post("/api/incidents/demo", {})
+            self.assertEqual(state["counts"]["confirmed"], 1)
+            self.assertTrue(state["actions"])
+            with self.assertRaises(urllib.error.HTTPError) as error:
+                post("/api/incidents", {"crossing": "NOPE", "status": "reported"})
+            self.assertEqual(error.exception.code, 400)
+            with mock.patch.dict(os.environ, {"OPERATOR_KEY": "k"}), self.assertRaises(urllib.error.HTTPError) as error:
+                post("/api/incidents/reset", {})
+            self.assertEqual(error.exception.code, 403)
+            self.assertEqual(post("/api/incidents/reset", {})["counts"]["confirmed"], 0)
+        with urllib.request.urlopen(self.base + "/operations") as response:
+            self.assertIn('src="/operations.js"', response.read().decode())
 
     def test_access_logs_do_not_record_gps_queries(self):
         with mock.patch.object(Handler, "log_message") as log:
