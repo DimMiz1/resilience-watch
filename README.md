@@ -545,7 +545,27 @@ For confirmed closures the console shows:
 - a rule-based response checklist.
 
 "Load replay" re-creates the 5 September 2023 situation (CEMS EMSR693: "the
-main road Tsarevo - Sinemoretz is closed"), shifted to the present time.
+main road Tsarevo - Sinemoretz is closed"), shifted to the present time. Crossings
+inside the official EMSR693 area of interest, stored in `data/emsr693_aoi.json`, are
+flagged as suspected.
+
+### Official-source watcher (`watcher.py`)
+
+The server checks official sources every `WATCH_MINUTES` (default 15). Set `WATCHER=off`
+to disable this. To check immediately, use the console button or `POST /api/incidents/scan`
+(at most once a minute).
+
+| Source | Rule | Flag |
+| --- | --- | --- |
+| Copernicus EMS Rapid Mapping | open activation in Bulgaria whose area of interest contains a crossing | suspected |
+| GloFAS (via Open-Meteo flood API) | 10-day forecast above the cell's 5-year 99th percentile (high) or record (extreme) | suspected for crossings in that 0.1° cell |
+| Meteoalarm (NIMH) | live orange or red rain, flood, thunderstorm or coastal warning for Burgas (NUTS3 BG341) | suspected for the 5 highest-consequence crossings |
+
+Rules:
+- Signals never downgrade or duplicate an incident.
+- A crossing that an operator reopened is not flagged again by the same signal.
+- Each source is isolated. A failing source is shown as "outdated" with its last good time, and the others keep running.
+- GloFAS thresholds are cached for 30 days in `.cache/glofas_thresholds.json`, to stay within API rate limits.
 
 API: `GET /api/incidents`; `POST /api/incidents` with
 `{crossing, status, at?, note?, expected_hours?, vehicles_per_day?, occupancy?, key?}`;

@@ -1,0 +1,10 @@
+{
+ "code": "EMSR693",
+ "name": "Flood in Burgas, Bulgaria",
+ "aoi": "Tsarevo",
+ "reason": "On the 05 September 2023, at 20:00, massive floods are reported to have affected Burgas province, Bulgaria. A state of emergency is declared and media reported 130 people evacuated and 4 casualties. Images show camping trailers and cars in the sea after being washed away by swollen rivers. Bungalows and hotels along the Black Sea coast are flooded. The main road Tsarevo - Sinemoretz is closed. Copernicus EMS Rapid Mapping is requested to provide initial rough estimation, flood extent and damage assessment emergency mapping.",
+ "eventTime": "2023-09-05T20:00:00",
+ "closed": true,
+ "source": "Copernicus EMS Rapid Mapping, https://rapidmapping.emergency.copernicus.eu/EMSR693",
+ "extent": "POLYGON ((27.969899 41.986546, 27.90243 41.984383, 27.900922 41.992384, 27.888133 41.999969, 27.861215 42.007702, 27.810566 41.994975, 27.801198 42.174328, 27.871114 42.176207, 27.95829 42.105427, 28.00058 42.06262, 28.058971 41.989401, 28.036907 41.988694, 28.036407 41.983455, 28.033028 41.981599, 28.029269 41.983169, 28.027579 41.983383, 28.023534 41.981575, 28.0178 41.981646, 28.012065 41.981313, 28.003927 41.981527, 27.999549 41.982098, 27.993077 41.982122, 27.986998 41.987094, 27.975132 41.992087, 27.969899 41.986546))"
+}

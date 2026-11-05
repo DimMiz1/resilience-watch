@@ -69,6 +69,13 @@
     $("log").innerHTML = table(["Incident", "Crossing", "Status", "History"],
       s.incidents.map((i) => [i.id, esc(i.name), `<span class="pill s-${i.status}">${i.status}</span>`,
         i.history.map((h) => `${h.status} ${new Date(h.at).toLocaleString("en-GB")}${h.note ? `: ${esc(h.note)}` : ""}`).join("<br>")]));
+    const when = (t) => (t ? new Date(t).toLocaleString("en-GB", {dateStyle: "short", timeStyle: "short"}) : "–");
+    $("sources").innerHTML = table(["Source", "Status", "Last good data", "Result"],
+      Object.entries(s.sources || {}).map(([name, h]) => {
+        const st = h.status || "not checked yet";
+        return [esc(name), `<span class="pill h-${st.split(" ")[0]}">${esc(st)}</span>`, when(h.last_ok),
+          esc(h.error ? `${h.error}. Last good data kept; other sources and manual reports still work.` : h.detail || "")];
+      }));
     paintMap();
   }
 
@@ -113,8 +120,13 @@
     $("actions").addEventListener("change", (e) => {
       if (e.target.dataset.key) { e.target.checked ? done.add(e.target.dataset.key) : done.delete(e.target.dataset.key); render(); }
     });
+    $("scan").addEventListener("click", () => {
+      $("status-line").textContent = "Checking Copernicus EMS, GloFAS and Meteoalarm…";
+      post("/api/incidents/scan", {}).then(() => { $("status-line").textContent = "Official sources checked."; })
+        .catch((e) => { $("status-line").textContent = e.message; });
+    });
     $("demo").addEventListener("click", () => post("/api/incidents/demo", {key: $("key").value || undefined})
-      .then(() => { $("status-line").textContent = "Replay loaded: road 9901 closure confirmed 6 hours ago."; })
+      .then(() => { $("status-line").textContent = "Replay loaded: road 9901 closure confirmed 6 hours ago; crossings inside the official EMSR693 area flagged."; })
       .catch((e) => { $("status-line").textContent = e.message; }));
     $("reset").addEventListener("click", () => confirm("Clear all incidents?") && post("/api/incidents/reset", {key: $("key").value || undefined})
       .catch((e) => { $("status-line").textContent = e.message; }));

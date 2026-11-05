@@ -30,7 +30,7 @@
     .btn-confirmed {background: #a32822; color: #fff; border-color: #a32822} .btn-reopened {background: #1f7a3a; color: #fff; border-color: #1f7a3a}
     .pill {display: inline-block; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 1px 7px; border-radius: 4px; color: #fff}
     .p-critical, .s-confirmed {background: #a32822} .p-high, .s-reported {background: #b05a00} .p-medium, .s-suspected {background: #806000}
-    .s-reopened {background: #1f7a3a} .tag-observed {background: #2a6f97} .tag-modelled {background: #61509c} .tag-assumed {background: #805008}
+    .s-reopened, .h-ok {background: #1f7a3a} .h-outdated {background: #b05a00} .h-unavailable {background: #a32822} .h-not {background: #777} .tag-observed {background: #2a6f97} .tag-modelled {background: #61509c} .tag-assumed {background: #805008}
     .actions {list-style: none; padding: 0; margin: 0; display: grid; gap: 8px}
     .actions li {display: flex; gap: 10px; align-items: flex-start; background: var(--panel); border: 1px solid var(--line); border-left-width: 5px; border-radius: var(--radius); padding: 10px}
     .actions li.critical {border-left-color: #a32822} .actions li.high {border-left-color: #b05a00} .actions li.medium {border-left-color: #806000}
@@ -51,6 +51,12 @@
   <p class="banner" id="mode"></p>
 
   <div class="figures" id="summary"></div>
+
+  <section class="card" aria-labelledby="src-title">
+    <h2 id="src-title" style="margin-top:0">Official sources <span class="muted">(checked automatically every 15 minutes; they flag risk, never confirm)</span></h2>
+    <div id="sources"></div>
+    <div class="buttons"><button type="button" id="scan">Check official sources now</button></div>
+  </section>
 
   <div class="grid">
     <section>

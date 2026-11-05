@@ -8,7 +8,7 @@ APP_FILES = (
     "server.py", "feeds.py", "hazards.py", "emergency.py", "map_data.py",
     "ml.py", "fire_ml.py", "copernicus.py", "local_geo.py", "local_helpers.py",
     "local_ml.py", "Dockerfile", ".dockerignore", "render.yaml", "README.md",
-    "package_release.py", "network.py", "incidents.py", "build_network.py", "data/burgas_south.json",
+    "package_release.py", "network.py", "incidents.py", "watcher.py", "data/emsr693_aoi.json", "build_network.py", "data/burgas_south.json",
 )
 STATIC_FILES = (
     "index.html", "overview.html", "impact.html", "impact.js", "operations.html", "operations.js", "app.js", "rain_renderer.js",
@@ -17,7 +17,7 @@ STATIC_FILES = (
 )
 TEST_FILES = (
     "test_copernicus.py", "test_destinations.py", "test_emergency.py",
-    "test_feeds.py", "test_map_data.py", "test_ml.py", "test_release.py", "test_network.py", "test_incidents.py",
+    "test_feeds.py", "test_map_data.py", "test_ml.py", "test_release.py", "test_network.py", "test_incidents.py", "test_watcher.py",
     "test_product_ui.js", "test_location.js", "test_requests.js",
     "test_water.js", "test_mobile.js", "test_rain_view.js",
     "test_rain_renderer.js", "test_phone_app.js",

@@ -121,9 +121,8 @@ def load_demo(key=None, net=None, now=None):
            net, now)
     update({"crossing": main, "status": "confirmed", "at": _iso(now - timedelta(hours=6)), "expected_hours": 72,
             "key": key, "note": "Demo: confirmed by operator."}, net, now)
-    for c in [c for c in network.bridges(net)["crossings"] if c["road"] == "99"][:2]:
-        update({"crossing": c["id"], "status": "suspected", "key": key,
-                "note": "Demo: heavy rain over the crossing; inspection advised."}, net, now)
+    import watcher  # local import: watcher depends on this module
+    watcher.apply(watcher.replay_signals(net), net, now)
 
 
 def _hours(start, end):
@@ -238,8 +237,13 @@ def _actions(result, confirmed, reported, suspected):
     for i in reported:
         actions.append({"priority": "high", "kind": "verify", "text":
                         f"Verify the report at {i['name']} and confirm or dismiss it."})
+    groups = {}
     for i in suspected:
+        groups.setdefault(i["history"][-1]["note"] or "automatic flag", []).append(i["name"])
+    for note, all_names in groups.items():
+        names = list(dict.fromkeys(all_names))
+        listed = ", ".join(names[:5]) + (f" and others" if len(names) > 5 else "")
         actions.append({"priority": "medium", "kind": "inspect", "text":
-                        f"Inspect {i['name']}: flagged as at risk ({i['history'][-1]['note'] or 'automatic flag'})."})
+                        f"Inspect {len(all_names)} crossing{'s' if len(all_names) > 1 else ''} ({listed}). Reason: {note}"})
     order = {"critical": 0, "high": 1, "medium": 2}
     return sorted(actions, key=lambda a: order[a["priority"]])

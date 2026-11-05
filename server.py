@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import time
 import urllib.parse
 
 from feeds import FeedCache, SOURCES, coordinate, query_location
@@ -17,6 +18,7 @@ import map_data
 import emergency
 import network
 import incidents
+import watcher
 
 SOURCES.update({
     "emergency": ("Country, region and official contacts", emergency.emergency_feed,
@@ -145,7 +147,7 @@ class Handler(BaseHTTPRequestHandler):
             self.json(200, evacuate(lat, lon))
             return
         if request.path == "/api/incidents":
-            self.json(200, incidents.situation())
+            self.json(200, operations_state())
             return
         if request.path == "/api/infrastructure/bridges":
             self.json(200, network.bridges())
@@ -195,7 +197,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urllib.parse.urlsplit(self.path).path
-        if path not in ("/api/incidents", "/api/incidents/demo", "/api/incidents/reset"):
+        if path not in ("/api/incidents", "/api/incidents/demo", "/api/incidents/reset", "/api/incidents/scan"):
             self.json(404, {"error": "Not found."})
             return
         try:
@@ -209,6 +211,12 @@ class Handler(BaseHTTPRequestHandler):
                 incidents.update(body)
             elif path == "/api/incidents/demo":
                 incidents.load_demo(body.get("key"))
+            elif path == "/api/incidents/scan":
+                global _last_scan
+                if time.monotonic() - _last_scan < 60:
+                    raise ValueError("Official sources were checked less than a minute ago.")
+                _last_scan = time.monotonic()
+                watcher.scan()
             else:
                 incidents.reset(body.get("key"))
         except PermissionError as error:
@@ -217,7 +225,14 @@ class Handler(BaseHTTPRequestHandler):
         except ValueError as error:
             self.json(400, {"error": str(error)})
             return
-        self.json(200, incidents.situation())
+        self.json(200, operations_state())
+
+
+_last_scan = -60.0
+
+
+def operations_state():
+    return {**incidents.situation(), "sources": watcher.health()}
 
 
 def main(argv=None):
@@ -230,6 +245,8 @@ def main(argv=None):
         parser.error("--port must be between 1 and 65535")
     try:
         with ThreadingHTTPServer((args.host, args.port), Handler) as server:
+            if os.environ.get("WATCHER", "on").lower() != "off":
+                watcher.start()
             print(f"Resilience Watch: http://{args.host}:{args.port}", flush=True)
             print("Advisory prototype. Follow official emergency services for your location.", flush=True)
             server.serve_forever()
